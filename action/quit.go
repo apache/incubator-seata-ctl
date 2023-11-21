@@ -18,9 +18,10 @@
 package action
 
 import (
+	"os"
+
 	"github.com/seata/seata-ctl/action/common"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func init() {

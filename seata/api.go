@@ -21,9 +21,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"net/http"
 	"sort"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 func BuildPostRequestWithArrayData(urlStr string, data []string) (*http.Request, error) {

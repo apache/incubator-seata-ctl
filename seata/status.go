@@ -20,10 +20,11 @@ package seata
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 type NodeStatusResponse struct {
@@ -47,6 +48,9 @@ func GetStatus() {
 	request, _ := http.NewRequest("GET", url, nil)
 	request.Header.Set("authorization", token)
 	resp, err := (&http.Client{}).Do(request)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

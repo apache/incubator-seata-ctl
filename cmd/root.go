@@ -19,12 +19,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/seata/seata-ctl/action"
 	"github.com/seata/seata-ctl/action/common"
 	"github.com/seata/seata-ctl/seata"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var (
@@ -39,7 +40,7 @@ var (
 
 func init() {
 	credential := seata.GetAuth()
-	rootCmd.PersistentFlags().StringVar(&credential.ServerIp, "ip", "127.0.0.1", "Seata Server IP")
+	rootCmd.PersistentFlags().StringVar(&credential.ServerIP, "ip", "127.0.0.1", "Seata Server IP")
 	rootCmd.PersistentFlags().IntVar(&credential.ServerPort, "port", 7091, "Seata Server Admin Port")
 	rootCmd.PersistentFlags().StringVar(&credential.Username, "username", "seata", "Username")
 	rootCmd.PersistentFlags().StringVar(&credential.Password, "password", "seata", "Password")

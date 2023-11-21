@@ -43,16 +43,15 @@ var ConfigCmd = &cobra.Command{
 		if err != nil {
 			common.Log("", err)
 		}
-		configType := seata.NORMAL_CONFIG
+		configType := seata.NormalConfig
 		if setRegistry {
-			configType = seata.REGISTRY_CONF
+			configType = seata.RegistryConf
 		} else if setConfigCenter {
-			configType = seata.CONFIG_CENTER_CONF
+			configType = seata.ConfigCenterConf
 		}
 		common.Log(seata.SetConfiguration(data, configType))
 		kvData = "{}"
 		setRegistry = false
 		setConfigCenter = false
-		configType = seata.NORMAL_CONFIG
 	},
 }

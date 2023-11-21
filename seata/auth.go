@@ -30,7 +30,7 @@ import (
 var auth Auth
 
 type Auth struct {
-	ServerIp   string
+	ServerIP   string
 	ServerPort int
 	Username   string
 	Password   string
@@ -52,7 +52,7 @@ func (auth *Auth) GetToken() (string, error) {
 }
 
 func (auth *Auth) GetAddress() string {
-	return auth.ServerIp + ":" + strconv.Itoa(auth.ServerPort)
+	return auth.ServerIP + ":" + strconv.Itoa(auth.ServerPort)
 }
 
 func GetAuth() *Auth {

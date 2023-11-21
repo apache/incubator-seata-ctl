@@ -42,9 +42,9 @@ const (
 type ConfigType int
 
 const (
-	REGISTRY_CONF ConfigType = iota
-	CONFIG_CENTER_CONF
-	NORMAL_CONFIG
+	RegistryConf ConfigType = iota
+	ConfigCenterConf
+	NormalConfig
 )
 
 type BaseResponse struct {
