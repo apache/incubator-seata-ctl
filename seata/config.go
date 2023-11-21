@@ -44,6 +44,9 @@ func GetConfigurations(params []string) (string, error) {
 	}
 
 	resp, err := (&http.Client{}).Do(request)
+	if err != nil {
+		return "", err
+	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -66,9 +69,9 @@ func GetConfigurations(params []string) (string, error) {
 func SetConfiguration(data map[string]string, configType ConfigType) (string, error) {
 	urlStr := HTTPProtocol + GetAuth().GetAddress()
 	switch configType {
-	case REGISTRY_CONF:
+	case RegistryConf:
 		urlStr = urlStr + RegistryConfigurationURL
-	case CONFIG_CENTER_CONF:
+	case ConfigCenterConf:
 		urlStr = urlStr + ConfigCenterConfigurationURL
 	default:
 		urlStr = urlStr + ConfigurationURL
@@ -79,6 +82,9 @@ func SetConfiguration(data map[string]string, configType ConfigType) (string, er
 	}
 
 	resp, err := (&http.Client{}).Do(request)
+	if err != nil {
+		return "", err
+	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -110,6 +116,9 @@ func ReloadConfiguration() {
 	request.Header.Set("authorization", token)
 	request.Header.Set("Content-Type", "application/json")
 	resp, err := (&http.Client{}).Do(request)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
