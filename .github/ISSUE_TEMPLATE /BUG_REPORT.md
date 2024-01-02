@@ -1,7 +1,7 @@
 ---
 name: Bug Report    
 
-about: If you would like to report an issue to seata-ctl, please use this template.
+about: If you would like to report an issue to Seata, please use this template.
 
 ---
 <!-- Please do not use this issue template to report security vulnerabilities but refer to our [security policy](https://github.com/seata/seata/security/policy). -->
@@ -38,9 +38,8 @@ Minimal yet complete reproducer code (or URL to code):
 
 ### Ⅵ. Environment:
 
-- JDK version(e.g. `java -version`):
+- Go version:
 - Seata client/server version:
-- Database version:
 - OS(e.g. `uname -a`):
 - seata-ctl version:
 - Others:
