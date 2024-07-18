@@ -1,9 +1,9 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements.  See the NOTICE config distributed with
  * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
+ * The ASF licenses this config to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this config except in compliance with
  * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -19,7 +19,9 @@ package action
 
 import (
 	"github.com/seata/seata-ctl/action/common"
+	"github.com/seata/seata-ctl/action/config"
 	"github.com/seata/seata-ctl/action/get"
+	"github.com/seata/seata-ctl/action/k8s"
 	"github.com/seata/seata-ctl/action/reload"
 	se "github.com/seata/seata-ctl/action/set"
 	del "github.com/seata/seata-ctl/action/try"
@@ -29,7 +31,7 @@ import (
 func init() {
 	rootCmd.AddCommand(quitCmd,
 		get.GetCmd, del.TryCmd,
-		reload.ReloadCmd, se.SetCmd)
+		reload.ReloadCmd, se.SetCmd, config.ConfigCmd, k8s.DeployCmd, k8s.UnDeployCmd, k8s.InstallCmd, k8s.ScaleCmd)
 	rootCmd.SetHelpTemplate(common.GetHelpTmplWithOnlyAvailableCmd())
 	rootCmd.CompletionOptions = cobra.CompletionOptions{
 		DisableDefaultCmd:   true,

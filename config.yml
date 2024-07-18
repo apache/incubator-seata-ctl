@@ -1,0 +1,23 @@
+kubernetes:
+    clusters:
+        - name: ""
+          kubeconfigpath: ""
+          ymlpath: ""
+prometheus:
+    servers:
+        - name: ""
+          address: ""
+          auth: ""
+log:
+    clusters:
+        - name: ""
+          collection:
+            enable: true
+            local: ""
+          analysis:
+            enable: true
+            local: ""
+          display:
+            displayType: ""
+            path: ""
+            local: ""
