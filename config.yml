@@ -1,7 +1,7 @@
 kubernetes:
     clusters:
-        - name: ""
-          kubeconfigpath: ""
+        - name: "cluster1"
+          kubeconfigpath: "/Users/wpy/.kube/config"
           ymlpath: ""
 prometheus:
     servers:
@@ -21,3 +21,7 @@ log:
             displayType: ""
             path: ""
             local: ""
+context:
+    kubernetes: "cluster1"
+    prometheus: ""
+    log: ""

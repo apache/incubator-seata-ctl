@@ -13,7 +13,8 @@ func ReadYMLFile(path string) (model.Config, error) {
 	var config model.Config
 
 	// 检查文件是否存在
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	//ymlFilePath := path + "config.yml"
+	if _, err := os.Stat("config.yml"); os.IsNotExist(err) {
 		return config, fmt.Errorf("file does not exist: %s", path)
 	}
 

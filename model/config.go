@@ -4,10 +4,11 @@ type Config struct {
 	Kubernetes Kubernetes `yaml:"kubernetes"`
 	Prometheus Prometheus `yaml:"prometheus"`
 	Log        Log        `yaml:"log"`
+	Context    Context    `yaml:"context"`
 }
 
 type Kubernetes struct {
-	Cluster KubernetesCluster `yaml:"clusters"`
+	Cluster []KubernetesCluster `yaml:"clusters"`
 }
 
 type Prometheus struct {
@@ -16,6 +17,13 @@ type Prometheus struct {
 
 type Log struct {
 	Clusters []Cluster `yaml:"clusters"`
+}
+
+// Context 依据Context字段选择使用哪个配置
+type Context struct {
+	Kubernetes string `yaml:"kubernetes"`
+	Prometheus string `yaml:"prometheus"`
+	Log        string `yaml:"log"`
 }
 
 type KubernetesCluster struct {

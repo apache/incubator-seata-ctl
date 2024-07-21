@@ -31,7 +31,7 @@ func init() {
 func createSampleConfig() model.Config {
 	return model.Config{
 		Kubernetes: model.Kubernetes{
-			Clusters: []model.KubernetesCluster{
+			Cluster: []model.KubernetesCluster{
 				{
 					Name:           "",
 					KubeConfigPath: "",
@@ -68,6 +68,11 @@ func createSampleConfig() model.Config {
 				},
 			},
 		},
+		Context: model.Context{
+			Kubernetes: "",
+			Prometheus: "",
+			Log:        "",
+		},
 	}
 }
 
@@ -79,7 +84,7 @@ func createYMLFile(path string) error {
 	}
 
 	// 检查文件是否存在
-	ymlFilePath := path + "/config.yml"
+	ymlFilePath := path + "config.yml"
 	if _, err := os.Stat(ymlFilePath); err == nil {
 		return fmt.Errorf("file already exists: %s", path)
 	}
@@ -114,4 +119,13 @@ func createYMLFile(path string) error {
 	Path = path
 
 	return nil
+}
+
+func Test() {
+	// 将 YAML 数据写入文件
+	file, err := os.ReadFile("config.yml")
+	if err != nil {
+		log.Fatalf("Failed to read config.yml: %v", err)
+	}
+	println(file)
 }
