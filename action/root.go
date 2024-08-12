@@ -29,9 +29,20 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(quitCmd,
-		get.GetCmd, del.TryCmd,
-		reload.ReloadCmd, se.SetCmd, config.ConfigCmd, k8s.DeployCmd, k8s.UnDeployCmd, k8s.InstallCmd, k8s.ScaleCmd)
+	rootCmd.AddCommand(
+		quitCmd,
+		get.GetCmd,
+		del.TryCmd,
+		reload.ReloadCmd,
+		se.SetCmd,
+		config.ConfigCmd,
+		k8s.DeployCmd,
+		k8s.UnDeployCmd,
+		k8s.InstallCmd,
+		k8s.UnInstallCmd,
+		k8s.StatusCmd,
+		k8s.ScaleCmd,
+	)
 	rootCmd.SetHelpTemplate(common.GetHelpTmplWithOnlyAvailableCmd())
 	rootCmd.CompletionOptions = cobra.CompletionOptions{
 		DisableDefaultCmd:   true,
