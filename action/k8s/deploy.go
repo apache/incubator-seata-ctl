@@ -60,18 +60,45 @@ func deploy() error {
 			"apiVersion": "operator.seata.apache.org/v1alpha1",
 			"kind":       "SeataServer",
 			"metadata": map[string]interface{}{
-				"name": Name,
+				"name":      Name,
+				"namespace": "default",
 			},
 			"spec": map[string]interface{}{
-				"image":         "seataio/seata-server:latest",
 				"containerName": Image,
+				"image":         "seataio/seata-server:latest",
 				"replicas":      Replicas,
+				"serviceName":   ServiceName,
+				"env": map[string]interface{}{
+					"SEATA_ENV":       "prod",
+					"SEATA_LOG_LEVEL": "info",
+				},
 				"ports": map[string]interface{}{
 					"consolePort": 7091,
 					"raftPort":    9091,
 					"servicePort": 8091,
 				},
-				"serviceName": ServiceName,
+				"resources": map[string]interface{}{
+					"limits": map[string]interface{}{
+						"cpu":    "500m",
+						"memory": "1Gi",
+					},
+					"requests": map[string]interface{}{
+						"cpu":    "250m",
+						"memory": "512Mi",
+					},
+				},
+				"store": map[string]interface{}{
+					"resources": map[string]interface{}{
+						"limits": map[string]interface{}{
+							"cpu":    "500m",
+							"memory": "1Gi",
+						},
+						"requests": map[string]interface{}{
+							"cpu":    "250m",
+							"memory": "512Mi",
+						},
+					},
+				},
 			},
 		},
 	}

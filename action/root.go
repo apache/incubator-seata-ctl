@@ -22,6 +22,7 @@ import (
 	"github.com/seata/seata-ctl/action/config"
 	"github.com/seata/seata-ctl/action/get"
 	"github.com/seata/seata-ctl/action/k8s"
+	"github.com/seata/seata-ctl/action/prometheus"
 	"github.com/seata/seata-ctl/action/reload"
 	se "github.com/seata/seata-ctl/action/set"
 	del "github.com/seata/seata-ctl/action/try"
@@ -42,6 +43,7 @@ func init() {
 		k8s.UnInstallCmd,
 		k8s.StatusCmd,
 		k8s.ScaleCmd,
+		prometheus.MetricsCmd,
 	)
 	rootCmd.SetHelpTemplate(common.GetHelpTmplWithOnlyAvailableCmd())
 	rootCmd.CompletionOptions = cobra.CompletionOptions{

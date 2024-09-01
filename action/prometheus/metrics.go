@@ -3,10 +3,17 @@ package prometheus
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+	"github.com/seata/seata-ctl/model"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"time"
 )
 
 var MetricsCmd = &cobra.Command{
@@ -20,14 +27,27 @@ var MetricsCmd = &cobra.Command{
 	},
 }
 
-var Name string
 var Target string
-var Region string
 
 func init() {
-	MetricsCmd.PersistentFlags().StringVar(&Name, "name", "prometheus", "Prometheus name")
-	MetricsCmd.PersistentFlags().StringVar(&Target, "target", "default", "Namespace name")
-	MetricsCmd.PersistentFlags().StringVar(&Region, "region", "default", "Namespace name")
+	MetricsCmd.PersistentFlags().StringVar(&Target, "target", "seata_transaction_summary", "Namespace name")
+}
+
+func metrics() error {
+	prometheusURL, err := getPrometheusAddress()
+	if err != nil {
+		return err
+	}
+	result, err := queryPrometheusMetric(prometheusURL, Target)
+	if err != nil {
+		log.Fatalf("Error querying Prometheus: %v", err)
+	}
+	err = generateView(result)
+	if err != nil {
+		log.Fatalf("Error generating view: %v", err)
+		return err
+	}
+	return nil
 }
 
 // QueryResult 用于解析 Prometheus 查询结果的结构体
@@ -42,41 +62,98 @@ type QueryResult struct {
 	} `json:"data"`
 }
 
-func metrics() error {
-	// 构建查询的 URL
-	prometheusURL := "http://localhost:9090"
-	u, _ := url.ParseRequestURI(prometheusURL)
-	u.Path = "/api/v1/query"
-	// 添加查询参数
-	q := u.Query()
-	query := "seata.tm.commit"
-	q.Set("query", query)
-	u.RawQuery = q.Encode()
-
-	// 发送 HTTP GET 请求
-	resp, err := http.Get(u.String())
+func getPrometheusAddress() (string, error) {
+	file, err := os.ReadFile("config.yml")
 	if err != nil {
-		return err
+		log.Fatalf("Failed to read config.yml: %v", err)
+	}
+	var config model.Config
+	err = yaml.Unmarshal(file, &config)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
+	}
+	contextName := config.Context.Prometheus
+	var contextPath string
+	for _, server := range config.Prometheus.Servers {
+		if server.Name == contextName {
+			contextPath = server.Address
+		}
+	}
+	if contextPath == "" {
+		log.Fatalf("Failed to find context in config.yml")
+		return "", err
+	}
+	return contextPath, err
+}
+
+func generateView(result *PrometheusResponse) error {
+	app := tview.NewApplication()
+	table := tview.NewTable().
+		SetBorders(true).
+		SetFixed(1, 0)
+	headers := []string{"Metric", "Timestamp", "Value"}
+	for i, header := range headers {
+		table.SetCell(0, i, tview.NewTableCell(header).
+			SetTextColor(tview.TrueColor).
+			SetAlign(tview.AlignCenter).
+			SetSelectable(false))
+	}
+	for rowIndex, res := range result.Data.Result {
+		value := res.Value
+		if len(value) == 2 {
+			timestamp, ok := value[0].(float64)
+			if !ok {
+				log.Println("Invalid timestamp format")
+				continue
+			}
+			val, ok := value[1].(string)
+			if !ok {
+				log.Println("Invalid value format")
+				continue
+			}
+			timeStamp := time.Unix(int64(timestamp), 0).UTC()
+			table.SetCell(rowIndex+1, 0, tview.NewTableCell(Target).
+				SetTextColor(tcell.ColorWhite).
+				SetAlign(tview.AlignLeft))
+			table.SetCell(rowIndex+1, 1, tview.NewTableCell(timeStamp.Format(time.RFC3339)).
+				SetTextColor(tcell.ColorWhite).
+				SetAlign(tview.AlignCenter))
+			table.SetCell(rowIndex+1, 2, tview.NewTableCell(val).
+				SetTextColor(tcell.ColorWhite).
+				SetAlign(tview.AlignRight))
+		}
+	}
+	if err := app.SetRoot(table, true).Run(); err != nil {
+		log.Fatalf("Error starting tview application: %v", err)
+	}
+	return nil
+}
+
+type PrometheusResponse struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
+
+func queryPrometheusMetric(prometheusURL, query string) (*PrometheusResponse, error) {
+	queryURL := fmt.Sprintf("%s/api/v1/query?query=%s", prometheusURL, url.QueryEscape(query))
+	resp, err := http.Get(queryURL)
+	if err != nil {
+		return nil, fmt.Errorf("error querying Prometheus: %w", err)
 	}
 	defer resp.Body.Close()
-
-	// 读取响应体
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
-
-	// 解析响应体为 QueryResult 结构
-	var result QueryResult
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return err
+	var result PrometheusResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
-	return err
-	//// 检查 Prometheus 查询状态
-	//if result.Status != "success" {
-	//	return nil, fmt.Errorf("query failed: %s", result.Status)
-	//}
-	//
-	//return &result, nil
+	return &result, nil
 }

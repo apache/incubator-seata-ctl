@@ -5,8 +5,8 @@ kubernetes:
           ymlpath: ""
 prometheus:
     servers:
-        - name: ""
-          address: ""
+        - name: "prometheus"
+          address: "http://localhost:9092"
           auth: ""
 log:
     clusters:
@@ -23,5 +23,5 @@ log:
             local: ""
 context:
     kubernetes: "cluster1"
-    prometheus: ""
+    prometheus: "prometheus"
     log: ""

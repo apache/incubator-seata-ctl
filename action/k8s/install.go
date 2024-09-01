@@ -19,21 +19,46 @@ import (
 	_ "k8s.io/apimachinery/pkg/runtime/schema"
 	_ "k8s.io/client-go/applyconfigurations/meta/v1"
 	"log"
+	"os/exec"
+	"strings"
 )
 
 var InstallCmd = &cobra.Command{
 	Use:   "install",
 	Short: "install k8s crd controller",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := InstallCRD()
-		if err != nil {
-			log.Fatal(err)
-		}
-		//err = DeploymentController()
+		//err := InstallCRD()
 		//if err != nil {
 		//	log.Fatal(err)
 		//}
+		err := DeploymentController()
+		if err != nil {
+			log.Fatal(err)
+		}
+		output, err := executeCommand("kubectl apply -f operator.seata.apache.org_seataservers.yaml")
+		if err != nil {
+			log.Println(output)
+		}
 	},
+}
+
+func executeCommand(input string) (string, error) {
+	// 将用户输入的命令分割成命令和参数
+	args := strings.Fields(input)
+	if len(args) == 0 {
+		return "", fmt.Errorf("no command provided")
+	}
+
+	// 使用 exec.Command 执行命令
+	cmd := exec.Command(args[0], args[1:]...)
+
+	// 获取命令的输出
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return string(output), nil
 }
 
 // InstallCRD 部署CRD

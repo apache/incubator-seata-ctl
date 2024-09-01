@@ -73,15 +73,16 @@ func Execute() {
 			os.Exit(0)
 		}
 	}
-	address := seata.GetAuth().GetAddress()
-	err := seata.GetAuth().Login()
-	if err != nil {
-		fmt.Println("login failed!")
-		os.Exit(1)
-	}
+	//address := seata.GetAuth().GetAddress()
+	//err := seata.GetAuth().Login()
+	//if err != nil {
+	//	fmt.Println("login failed!")
+	//	os.Exit(1)
+	//}
+	var err error
 
 	for {
-		printPrompt(address)
+		//printPrompt(address)
 		err = common.ReadArgs(os.Stdin)
 		if err != nil {
 			fmt.Println(err)
