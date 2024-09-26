@@ -10,6 +10,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	_ "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	_ "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -26,11 +27,15 @@ var InstallCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		// err = DeployController()
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
+		err = DeployController()
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
+}
+
+func init() {
+	InstallCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
 }
 
 const CreateCrdPath = "/apis/apiextensions.k8s.io/v1/customresourcedefinitions"
@@ -53,32 +58,48 @@ func DeployController() error {
 	if err != nil {
 		return fmt.Errorf("error getting clientset: %v", err)
 	}
-	// Create Deployment object
+
+	// Define the Deployment name and namespace
+	deploymentName := "seata-k8s-controller-manager"
+	namespace := Namespace
+
+	// Check if the Deployment already exists
+	_, err = clientset.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
+	if err == nil {
+		// If the Deployment exists, output a message and return
+		fmt.Printf("Deployment '%s' already exists in the '%s' namespace\n", deploymentName, Namespace)
+		return nil
+	} else if !errors.IsNotFound(err) {
+		// If there is an error other than "not found", return it
+		return fmt.Errorf("error checking for existing deployment: %v", err)
+	}
+
+	// Create Deployment object if it does not exist
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
 			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "seata-k8s-controller-manager",
+			Name: deploymentName,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: func(i int32) *int32 { return &i }(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": "seata-k8s-controller-manager",
+					"app": deploymentName,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app": "seata-k8s-controller-manager",
+						"app": deploymentName,
 					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "seata-k8s-controller-manager",
+							Name:  deploymentName,
 							Image: "apache/seata-controller:latest",
 							Ports: []corev1.ContainerPort{
 								{
@@ -91,10 +112,12 @@ func DeployController() error {
 			},
 		},
 	}
-	_, err = clientset.AppsV1().Deployments("default").Create(context.TODO(), deployment, metav1.CreateOptions{})
+
+	// Create the Deployment
+	_, err = clientset.AppsV1().Deployments(namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		log.Fatalf("Error creating deployment: %s", err.Error())
+		return fmt.Errorf("error creating deployment: %v", err)
 	}
 	fmt.Println("Deployment created successfully")
-	return err
+	return nil
 }
