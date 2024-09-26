@@ -117,15 +117,5 @@ func createYMLFile(path string) error {
 
 	//修改path的位置
 	Path = path
-
 	return nil
-}
-
-func Test() {
-	// 将 YAML 数据写入文件
-	file, err := os.ReadFile("config.yml")
-	if err != nil {
-		log.Fatalf("Failed to read config.yml: %v", err)
-	}
-	println(file)
 }

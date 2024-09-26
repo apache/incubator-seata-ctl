@@ -1,27 +1,30 @@
 kubernetes:
-    clusters:
-        - name: "cluster1"
-          kubeconfigpath: "/Users/wpy/.kube/config"
-          ymlpath: ""
+  clusters:
+    - name: "cluster1"
+      kubeconfigpath: "/Users/wpy/.kube/config"
+      ymlpath: ""
+    - name: "seata"
+      kubeconfigpath: "/Users/wpy/Documents/Kubernetes/remotekube.txt"
+      ymlpath: ""
 prometheus:
-    servers:
-        - name: "prometheus"
-          address: "http://localhost:9092"
-          auth: ""
+  servers:
+    - name: "prometheus"
+      address: "http://localhost:9092"
+      auth: ""
 log:
-    clusters:
-        - name: ""
-          collection:
-            enable: true
-            local: ""
-          analysis:
-            enable: true
-            local: ""
-          display:
-            displayType: ""
-            path: ""
-            local: ""
+  clusters:
+    - name: ""
+      collection:
+        enable: true
+        local: ""
+      analysis:
+        enable: true
+        local: ""
+      display:
+        displayType: ""
+        path: ""
+        local: ""
 context:
-    kubernetes: "cluster1"
-    prometheus: "prometheus"
-    log: ""
+  kubernetes: "cluster1"
+  prometheus: "prometheus"
+  log: ""

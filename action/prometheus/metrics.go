@@ -3,8 +3,6 @@ package prometheus
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"github.com/seata/seata-ctl/model"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -13,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 )
 
 var MetricsCmd = &cobra.Command{
@@ -42,11 +39,7 @@ func metrics() error {
 	if err != nil {
 		log.Fatalf("Error querying Prometheus: %v", err)
 	}
-	err = generateView(result)
-	if err != nil {
-		log.Fatalf("Error generating view: %v", err)
-		return err
-	}
+	printPrometheusResponse(result)
 	return nil
 }
 
@@ -86,48 +79,45 @@ func getPrometheusAddress() (string, error) {
 	return contextPath, err
 }
 
-func generateView(result *PrometheusResponse) error {
-	app := tview.NewApplication()
-	table := tview.NewTable().
-		SetBorders(true).
-		SetFixed(1, 0)
-	headers := []string{"Metric", "Timestamp", "Value"}
-	for i, header := range headers {
-		table.SetCell(0, i, tview.NewTableCell(header).
-			SetTextColor(tview.TrueColor).
-			SetAlign(tview.AlignCenter).
-			SetSelectable(false))
-	}
-	for rowIndex, res := range result.Data.Result {
-		value := res.Value
-		if len(value) == 2 {
-			timestamp, ok := value[0].(float64)
-			if !ok {
-				log.Println("Invalid timestamp format")
-				continue
-			}
-			val, ok := value[1].(string)
-			if !ok {
-				log.Println("Invalid value format")
-				continue
-			}
-			timeStamp := time.Unix(int64(timestamp), 0).UTC()
-			table.SetCell(rowIndex+1, 0, tview.NewTableCell(Target).
-				SetTextColor(tcell.ColorWhite).
-				SetAlign(tview.AlignLeft))
-			table.SetCell(rowIndex+1, 1, tview.NewTableCell(timeStamp.Format(time.RFC3339)).
-				SetTextColor(tcell.ColorWhite).
-				SetAlign(tview.AlignCenter))
-			table.SetCell(rowIndex+1, 2, tview.NewTableCell(val).
-				SetTextColor(tcell.ColorWhite).
-				SetAlign(tview.AlignRight))
-		}
-	}
-	if err := app.SetRoot(table, true).Run(); err != nil {
-		log.Fatalf("Error starting tview application: %v", err)
-	}
-	return nil
-}
+//func generateView(result *PrometheusResponse) error {
+//	app := tview.NewApplication()
+//	table := tview.NewTable().
+//		SetBorders(true).
+//		SetFixed(1, 0)
+//	headers := []string{"Metric", "Timestamp", "Value"}
+//	for i, header := range headers {
+//		table.SetCell(0, i, tview.NewTableCell(header).
+//			SetTextColor(tview.TrueColor).
+//			SetAlign(tview.AlignCenter).
+//			SetSelectable(false))
+//	}
+//	for rowIndex, res := range result.Data.Result {
+//		value := res.Value
+//		if len(value) == 2 {
+//			timestamp, ok := value[0].(float64)
+//			if !ok {
+//				log.Println("Invalid timestamp format")
+//				continue
+//			}
+//			val, ok := value[1].(string)
+//			if !ok {
+//				log.Println("Invalid value format")
+//				continue
+//			}
+//			timeStamp := time.Unix(int64(timestamp), 0).UTC()
+//			table.SetCell(rowIndex+1, 0, tview.NewTableCell(Target).
+//				SetAlign(tview.AlignLeft))
+//			table.SetCell(rowIndex+1, 1, tview.NewTableCell(timeStamp.Format(time.RFC3339)).
+//				SetAlign(tview.AlignCenter))
+//			table.SetCell(rowIndex+1, 2, tview.NewTableCell(val).
+//				SetAlign(tview.AlignRight))
+//		}
+//	}
+//	if err := app.SetRoot(table, true).Run(); err != nil {
+//		log.Fatalf("Error starting tview application: %v", err)
+//	}
+//	return nil
+//}
 
 type PrometheusResponse struct {
 	Status string `json:"status"`
@@ -156,4 +146,31 @@ func queryPrometheusMetric(prometheusURL, query string) (*PrometheusResponse, er
 		return nil, fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
 	return &result, nil
+}
+
+func printPrometheusResponse(response *PrometheusResponse) {
+	if response == nil {
+		fmt.Println("The Prometheus response is nil.")
+		return
+	}
+
+	fmt.Println("Prometheus Response Status:", response.Status)
+	if response.Data.ResultType != "" {
+		fmt.Println("Result Type:", response.Data.ResultType)
+	}
+
+	if len(response.Data.Result) > 0 {
+		fmt.Println("Results:")
+		for i, result := range response.Data.Result {
+			fmt.Printf("  Result %d:\n", i+1)
+			if len(result.Metric) > 0 {
+				fmt.Printf("    Metric: %+v\n", result.Metric)
+			}
+			if len(result.Value) > 0 {
+				fmt.Printf("    Value: %+v\n", result.Value)
+			}
+		}
+	} else {
+		fmt.Println("  No results found.")
+	}
 }

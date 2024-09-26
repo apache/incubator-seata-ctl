@@ -3,7 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/seata/seata-ctl/action/common"
+	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -18,17 +18,17 @@ var UnInstallCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		//err = UnDeploymentController()
-		//if err != nil {
-		//	log.Fatal(err)
-		//}
+		err = UnDeploymentController()
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
 // UninstallCRD 删除CRD定义
 func UninstallCRD() error {
 	//获取动态kubeclient
-	client, err := common.GetDynamicClient()
+	client, err := utils.GetDynamicClient()
 	if err != nil {
 		return err
 	}
@@ -42,13 +42,13 @@ func UninstallCRD() error {
 	if err != nil {
 		log.Fatalf("删除CRD 失败: %v", err)
 	}
-	fmt.Printf("删除CRD成功，名称: %s\n", "seataservers.operator.seata.apache.org")
+	fmt.Printf("delete CRD success，名称: %s\n", "seataservers.operator.seata.apache.org")
 	return nil
 }
 
 // UnDeploymentController 删除Seata-controller
 func UnDeploymentController() error {
-	clientset, err := common.GetClient()
+	clientset, err := utils.GetClient()
 	if err != nil {
 		return err
 	}

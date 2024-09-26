@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/seata/seata-ctl/action/common"
+	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -31,7 +31,7 @@ func init() {
 
 func status() error {
 	//获取动态kubeclient
-	client, err := common.GetDynamicClient()
+	client, err := utils.GetDynamicClient()
 	if err != nil {
 		return err
 	}

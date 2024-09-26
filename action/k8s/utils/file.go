@@ -1,4 +1,4 @@
-package common
+package utils
 
 import (
 	"github.com/seata/seata-ctl/model"
@@ -10,9 +10,9 @@ import (
 	"os"
 )
 
-// GetKubeConfigPath 根据配置文件中的内容，获取kubeConfigPath
+// GetKubeConfigPath retrieves the kubeConfigPath based on the contents of the config file.
 func GetKubeConfigPath() (string, error) {
-	//获取配置文件
+	// Read the configuration file
 	file, err := os.ReadFile("config.yml")
 	if err != nil {
 		log.Fatalf("Failed to read config.yml: %v", err)
@@ -22,25 +22,25 @@ func GetKubeConfigPath() (string, error) {
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
-	//获取context name
+	// Retrieve the context name
 	contextName := config.Context.Kubernetes
 	var contextPath string
-	//根据context，获取匹配的kubeconfig位置
+	// Find the matching kubeconfig path based on the context
 	for _, cluster := range config.Kubernetes.Cluster {
 		if cluster.Name == contextName {
 			contextPath = cluster.KubeConfigPath
 		}
 	}
-	//如果没有找到，返回错误
+	// If no matching context is found, return an error
 	if contextPath == "" {
 		log.Fatalf("Failed to find context in config.yml")
 	}
 	return contextPath, err
 }
 
-// GetClient 根据指定的 kubeconfig 文件路径创建并返回 Kubernetes 客户端
+// GetClient creates and returns a Kubernetes client based on the specified kubeconfig file path.
 func GetClient() (*kubernetes.Clientset, error) {
-	// 使用 client 加载指定的 kubeconfig 文件
+	// Load the kubeconfig file using the client
 	kubeconfigPath, err := GetKubeConfigPath()
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func GetClient() (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 
-	// 创建一个 Kubernetes 客户端
+	// Create a Kubernetes client
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -59,9 +59,9 @@ func GetClient() (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
-// GetDynamicClient 根据指定的 kubeconfig 文件路径创建并返回 Kubernetes 动态客户端
+// GetDynamicClient creates and returns a Kubernetes dynamic client based on the specified kubeconfig file path.
 func GetDynamicClient() (*dynamic.DynamicClient, error) {
-	// 使用 client 加载指定的 kubeconfig 文件
+	// Load the kubeconfig file using the client
 	kubeconfigPath, err := GetKubeConfigPath()
 	if err != nil {
 		return nil, err
@@ -71,10 +71,10 @@ func GetDynamicClient() (*dynamic.DynamicClient, error) {
 		return nil, err
 	}
 
-	// 创建动态客户端
+	// Create a dynamic client
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("无法创建动态客户端: %v", err)
+		log.Fatalf("Failed to create dynamic client: %v", err)
 	}
 	return dynamicClient, nil
 }

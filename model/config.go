@@ -40,6 +40,9 @@ type Server struct {
 
 type Cluster struct {
 	Name       string     `yaml:"name"`
+	Types      string     `yaml:"types"`
+	Address    string     `yaml:"address"`
+	Source     string     `yaml:"source"`
 	Collection Collection `yaml:"collection"`
 	Analysis   Analysis   `yaml:"analysis"`
 	Display    Display    `yaml:"display"`

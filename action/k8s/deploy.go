@@ -3,7 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/seata/seata-ctl/action/common"
+	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -34,7 +34,7 @@ func init() {
 
 func deploy() error {
 	//获取动态kubeclient
-	client, err := common.GetDynamicClient()
+	client, err := utils.GetDynamicClient()
 	if err != nil {
 		return err
 	}
@@ -68,10 +68,10 @@ func deploy() error {
 				"image":         "seataio/seata-server:latest",
 				"replicas":      Replicas,
 				"serviceName":   ServiceName,
-				"env": map[string]interface{}{
-					"SEATA_ENV":       "prod",
-					"SEATA_LOG_LEVEL": "info",
-				},
+				//"env": map[string]interface{}{
+				//	"SEATA_ENV":       "prod",
+				//	"SEATA_LOG_LEVEL": "info",
+				//},
 				"ports": map[string]interface{}{
 					"consolePort": 7091,
 					"raftPort":    9091,
@@ -107,6 +107,6 @@ func deploy() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("CR 创建成功，名称: %s\n", Name)
+	fmt.Printf("CR install success，name: %s\n", Name)
 	return nil
 }
