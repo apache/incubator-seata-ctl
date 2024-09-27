@@ -100,7 +100,7 @@ func DeployController() error {
 					Containers: []corev1.Container{
 						{
 							Name:  deploymentName,
-							Image: "apache/seata-controller:latest",
+							Image: "bearslyricattack/seata-controller:latest",
 							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: 80,

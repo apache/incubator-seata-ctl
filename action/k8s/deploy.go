@@ -10,6 +10,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+const Image = "apache/seata-server:latest"
+const ServiceName = "seata-server-cluster"
+const RequestStorage = "1Gi"
+const LimitStorage = "1Gi"
+
 var DeployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "deploy seata in k8s",
@@ -19,29 +24,21 @@ var DeployCmd = &cobra.Command{
 }
 
 var Name string
-var ServiceName string
 var Replicas int32
-var Image string
 var Namespace string
 
 func init() {
 	DeployCmd.PersistentFlags().StringVar(&Name, "name", "example-seataserver", "Seataserver name")
-	DeployCmd.PersistentFlags().StringVar(&ServiceName, "service", "seata-service", "Headless Service name")
 	DeployCmd.PersistentFlags().Int32Var(&Replicas, "replicas", 1, "Replicas number")
-	DeployCmd.PersistentFlags().StringVar(&Image, "image", "seata-server", "Image tag")
 	DeployCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
 }
 
 func deploy() error {
-	//获取动态kubeclient
 	client, err := utils.GetDynamicClient()
 	if err != nil {
 		return err
 	}
-	// 获取命名空间
 	namespace := Namespace
-
-	// 定义 Custom Resource 的 GroupVersionResource
 	gvr := schema.GroupVersionResource{
 		Group:    "operator.seata.apache.org",
 		Version:  "v1alpha1",
@@ -54,55 +51,31 @@ func deploy() error {
 		fmt.Println("This seata server already exits！")
 		return nil
 	}
-	// 创建 Custom Resource 对象
 	seataServer = &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "operator.seata.apache.org/v1alpha1",
 			"kind":       "SeataServer",
 			"metadata": map[string]interface{}{
 				"name":      Name,
-				"namespace": "default",
+				"namespace": Namespace,
 			},
 			"spec": map[string]interface{}{
-				"containerName": Image,
-				"image":         "seataio/seata-server:latest",
-				"replicas":      Replicas,
-				"serviceName":   ServiceName,
-				//"env": map[string]interface{}{
-				//	"SEATA_ENV":       "prod",
-				//	"SEATA_LOG_LEVEL": "info",
-				//},
-				"ports": map[string]interface{}{
-					"consolePort": 7091,
-					"raftPort":    9091,
-					"servicePort": 8091,
-				},
-				"resources": map[string]interface{}{
-					"limits": map[string]interface{}{
-						"cpu":    "500m",
-						"memory": "1Gi",
-					},
-					"requests": map[string]interface{}{
-						"cpu":    "250m",
-						"memory": "512Mi",
-					},
-				},
+				"serviceName": ServiceName,
+				"replicas":    Replicas,
+				"image":       Image,
 				"store": map[string]interface{}{
 					"resources": map[string]interface{}{
-						"limits": map[string]interface{}{
-							"cpu":    "500m",
-							"memory": "1Gi",
-						},
 						"requests": map[string]interface{}{
-							"cpu":    "250m",
-							"memory": "512Mi",
+							"storage": RequestStorage,
+						},
+						"limits": map[string]interface{}{
+							"storage": LimitStorage,
 						},
 					},
 				},
 			},
 		},
 	}
-	// 尝试创建 Custom Resource
 	_, err = client.Resource(gvr).Namespace(namespace).Create(context.TODO(), seataServer, metav1.CreateOptions{})
 	if err != nil {
 		return err

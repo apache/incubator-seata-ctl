@@ -1,16 +1,11 @@
 package k8s
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"log"
 )
 
 var StatusCmd = &cobra.Command{
@@ -24,56 +19,54 @@ var StatusCmd = &cobra.Command{
 	},
 }
 
+const Label = "cr_name"
+
 func init() {
 	StatusCmd.PersistentFlags().StringVar(&Name, "name", "list", "Seataserver name")
 	StatusCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
 }
 
 func status() error {
-	//获取动态kubeclient
-	client, err := utils.GetDynamicClient()
+	statuses, err := getPodsStatusByLabel(Namespace, Name)
 	if err != nil {
 		return err
 	}
-	// 获取命名空间
-	namespace := Namespace
-
-	// 定义 Custom Resource 的 GroupVersionResource
-	gvr := schema.GroupVersionResource{
-		Group:    "operator.seata.apache.org",
-		Version:  "v1alpha1",
-		Resource: "seataservers",
+	// Print formatted Pod status information
+	for _, status := range statuses {
+		fmt.Println(status)
 	}
-
-	var jsonData []byte
-	if Name == "list" {
-		fmt.Printf("1")
-		var seataServerList *unstructured.UnstructuredList
-		seataServerList, err = client.Resource(gvr).Namespace(namespace).List(context.TODO(), metav1.ListOptions{})
-		if err != nil {
-			return err
-		}
-		jsonData, err = seataServerList.MarshalJSON()
-		if err != nil {
-			log.Fatalf("Error marshalling Unstructured object to JSON: %v", err)
-		}
-	} else {
-		var seataServer *unstructured.Unstructured
-		seataServer, err = client.Resource(gvr).Namespace(namespace).Get(context.TODO(), Name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-		jsonData, err = seataServer.MarshalJSON()
-		if err != nil {
-			log.Fatalf("Error marshalling Unstructured object to JSON: %v", err)
-		}
-	}
-	//更美观的格式化输出
-	var prettyJSON bytes.Buffer
-	err = json.Indent(&prettyJSON, jsonData, "", "")
-	if err != nil {
-		log.Fatalf("Error indenting JSON: %v", err)
-	}
-	fmt.Printf("%s\n", prettyJSON.Bytes())
 	return nil
+}
+
+func getPodsStatusByLabel(namespace, labelSelector string) ([]string, error) {
+	client, err := utils.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client: %v", err)
+	}
+
+	// Retrieve all Pods with the specified label
+	// Use LabelSelector to filter Pods with the specified cr_name label
+	labelSelector = Label + "=" + labelSelector
+	pods, err := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
+		LabelSelector: labelSelector,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list pods: %v", err)
+	}
+
+	// Iterate over all Pods and get their status
+	var statuses []string
+	for _, pod := range pods.Items {
+		statuses = append(statuses, fmt.Sprintf("Pod %s is in %s phase", pod.Name, pod.Status.Phase))
+	}
+
+	// Build formatted status string for output
+	statuses = append(statuses, fmt.Sprintf("%-25s %-10s", "POD NAME", "STATUS")) // Header
+	statuses = append(statuses, fmt.Sprintf("%s", "-------------------------------------------"))
+
+	for _, pod := range pods.Items {
+		statuses = append(statuses, fmt.Sprintf("%-25s %-10s", pod.Name, pod.Status.Phase))
+	}
+
+	return statuses, nil
 }

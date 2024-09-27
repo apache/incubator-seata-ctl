@@ -28,15 +28,12 @@ func init() {
 }
 
 func scale() error {
-	//获取动态kubeclient
 	client, err := utils.GetDynamicClient()
 	if err != nil {
 		return err
 	}
-	// 获取命名空间
 	namespace := Namespace
 
-	// 定义 Custom Resource 的 GroupVersionResource
 	gvr := schema.GroupVersionResource{
 		Group:    "operator.seata.apache.org",
 		Version:  "v1alpha1",
@@ -49,16 +46,13 @@ func scale() error {
 		fmt.Println("This seata server does not exits！")
 		return nil
 	}
-
-	//修改
 	seataServer.Object["spec"].(map[string]interface{})["replicas"] = Replicas
 
-	// 尝试创建 Custom Resource
 	_, err = client.Resource(gvr).Namespace(namespace).Update(context.TODO(), seataServer, metav1.UpdateOptions{})
 
 	if err != nil {
 		return err
 	}
-	fmt.Printf("CR 修改成功，名称: %s\n", Name)
+	fmt.Printf("CR scale success，name: %s\n", Name)
 	return nil
 }

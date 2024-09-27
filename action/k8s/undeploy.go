@@ -26,26 +26,22 @@ func init() {
 }
 
 func undeploy() error {
-	//获取动态kubeclient
 	client, err := utils.GetDynamicClient()
 	if err != nil {
 		return err
 	}
-	// 获取命名空间
 	namespace := Namespace
 
-	// 定义 Custom Resource 的 GroupVersionResource
 	gvr := schema.GroupVersionResource{
 		Group:    "operator.seata.apache.org",
 		Version:  "v1alpha1",
 		Resource: "seataservers",
 	}
 
-	//删除
 	err = client.Resource(gvr).Namespace(namespace).Delete(context.TODO(), Name, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
-	fmt.Printf("CR 删除成功，名称: %s\n", Name)
+	fmt.Printf("CR delete success，name: %s\n", Name)
 	return nil
 }
