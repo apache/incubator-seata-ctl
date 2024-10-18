@@ -1,7 +1,6 @@
 package log
 
 import (
-	"errors"
 	"fmt"
 	"github.com/seata/seata-ctl/action/log/utils"
 	"github.com/seata/seata-ctl/action/log/utils/impl"
@@ -10,6 +9,14 @@ import (
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+)
+
+const (
+	ElasticSearchType = "ElasticSearch"
+	DefaultNumber     = 10
+)
+const (
+	LokiType = "Loki"
 )
 
 var LogCmd = &cobra.Command{
@@ -23,14 +30,33 @@ var LogCmd = &cobra.Command{
 	},
 }
 
-var Level string
-var TransactionId string
-var Expression string
+// ElasticSearch
+
+var LogLevel string
+var Module string
+var XID string
+var BranchID string
+var ResourceID string
+var Message string
+var Number int
+
+// Loki
+
+var Label string
+var Start string
+var End string
 
 func init() {
-	LogCmd.PersistentFlags().StringVar(&Level, "level", "ERROR", "seata log level")
-	LogCmd.PersistentFlags().StringVar(&TransactionId, "Id", "", "seata transaction id")
-	LogCmd.PersistentFlags().StringVar(&Expression, "Expression", "", "seata expression")
+	LogCmd.PersistentFlags().StringVar(&LogLevel, "level", "", "seata log level")
+	LogCmd.PersistentFlags().StringVar(&Module, "module", "", "seata module")
+	LogCmd.PersistentFlags().StringVar(&XID, "XID", "", "seata expression")
+	LogCmd.PersistentFlags().StringVar(&BranchID, "BranchID", "", "seata branchId")
+	LogCmd.PersistentFlags().StringVar(&ResourceID, "ResourceID", "", "seata resourceID")
+	LogCmd.PersistentFlags().StringVar(&Message, "message", "", "seata message")
+	LogCmd.PersistentFlags().IntVar(&Number, "number", DefaultNumber, "seata number")
+	LogCmd.PersistentFlags().StringVar(&Label, "label", "", "seata label")
+	LogCmd.PersistentFlags().StringVar(&Start, "start", "", "seata start")
+	LogCmd.PersistentFlags().StringVar(&End, "end", "", "seata end")
 }
 
 func getLog() error {
@@ -38,24 +64,39 @@ func getLog() error {
 	if err != nil {
 		return err
 	}
+	logType := context.Types
 
-	param := make(map[string]interface{})
-	param["currency"] = currency
+	var client utils.LogQuery
+	var filter = make(map[string]interface{})
 
-	client, param, err := getClientAndParams(context, param)
+	switch logType {
+	case ElasticSearchType:
+		{
+			client = &impl.Elasticsearch{}
+			filter = buildElasticSearchFilter()
+		}
+	case LokiType:
+		{
+			client = &impl.Loki{}
+			filter = buildLokiFilter()
+		}
+		//case "Local":
+		//	{
+		//		return &impl.Local{}, nil, nil
+		//	}
+	}
+
+	if client == nil {
+		return fmt.Errorf("can not get client")
+	}
+
+	err = client.QueryLogs(filter, currency, Number)
 	if err != nil {
 		return err
 	}
 
-	res, err := client.QueryLogs(param)
-	if err != nil {
-		return err
-	}
-
-	err = showLogInfo(res)
-	if err != nil {
-		return err
-	}
+	//reset var
+	//ResetAllVariables()
 
 	return nil
 }
@@ -76,6 +117,7 @@ func getContext() (*model.Cluster, *utils.Currency, error) {
 			currency := utils.Currency{
 				Address: cluster.Address,
 				Source:  cluster.Source,
+				Auth:    cluster.Auth,
 			}
 			return &cluster, &currency, nil
 		}
@@ -83,49 +125,56 @@ func getContext() (*model.Cluster, *utils.Currency, error) {
 	return nil, nil, fmt.Errorf("failed to find context in config.yml")
 }
 
-func getClientAndParams(cluster *model.Cluster, param map[string]interface{}) (utils.LogQuery, map[string]interface{}, error) {
-	logType := cluster.Types
-	switch logType {
-	case "ElasticSearch":
-		{
-			param["ElasticSearch"] = impl.ElasticsearchParams{
-				LogLevel:      logType,
-				TransactionId: TransactionId,
-			}
-			return &impl.Elasticsearch{}, param, nil
-		}
-	case "Loki":
-		{
-			param["Loki"] = impl.LokiParams{
-				Expression: Expression,
-			}
-			return &impl.Loki{}, nil, nil
-		}
-	case "Local":
-		{
-			param["Local"] = impl.LokiParams{
-				Expression: Expression,
-			}
-			return &impl.Local{}, nil, nil
-		}
-	default:
-		{
-			return nil, nil, fmt.Errorf("unknown log type: %s", logType)
-		}
+func buildElasticSearchFilter() map[string]interface{} {
+	filter := make(map[string]interface{})
+	if LogLevel != "" {
+		filter["logLevel"] = LogLevel
 	}
+	if Module != "" {
+		filter["module"] = Module
+	}
+	if XID != "" {
+		filter["XID"] = XID
+	}
+	if BranchID != "" {
+		filter["BranchID"] = BranchID
+	}
+	if ResourceID != "" {
+		filter["ResourceID"] = ResourceID
+	}
+	if Message != "" {
+		filter["message"] = Message
+	}
+	return filter
 }
 
-func showLogInfo(logs []string) error {
-	if len(logs) == 0 {
-		return errors.New("no logs to display")
+func buildLokiFilter() map[string]interface{} {
+	filter := make(map[string]interface{})
+	filter["query"] = Label
+	filter["number"] = Number
+	if Start != "" {
+		filter["start"] = Start
 	}
-	fmt.Println("=========== LOG ENTRIES ===========")
-	for i, logEntry := range logs {
-		fmt.Printf("Log #%d:\n", i+1)
-		fmt.Println("------------------------------")
-		fmt.Printf("%s\n", logEntry)
-		fmt.Println("------------------------------")
+	if End != "" {
+		filter["end"] = End
 	}
-	fmt.Println("=========== END OF LOGS ===========")
-	return nil
+
+	return filter
+}
+
+// ResetAllVariables resets all global variables to their zero values
+func ResetAllVariables() {
+	// Reset ElasticSearch-related variables
+	LogLevel = ""
+	Module = ""
+	XID = ""
+	BranchID = ""
+	ResourceID = ""
+	Message = ""
+	Number = 0
+
+	// Reset Loki-related variables
+	Label = ""
+	Start = ""
+	End = ""
 }

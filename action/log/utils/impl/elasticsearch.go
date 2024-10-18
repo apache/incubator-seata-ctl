@@ -2,133 +2,144 @@ package impl
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/olivere/elastic/v7"
 	"github.com/seata/seata-ctl/action/log/utils"
 	"log"
-	"strings"
-	"time"
-
-	elasticsearch "github.com/elastic/go-elasticsearch/v8"
+	"net/http"
 )
 
-type LogEntry struct {
-	Timestamp    time.Time `json:"timestamp,omitempty"`     // 使用 time.Time 来存储 ISO 8601 格式的时间戳
-	LogLevel     string    `json:"log_level,omitempty"`     // 日志级别，例如 "INFO"
-	Thread       string    `json:"thread,omitempty"`        // 线程名称
-	LoggerClass  string    `json:"logger_class,omitempty"`  // 产生日志的类名
-	LoggerMethod string    `json:"logger_method,omitempty"` // 产生日志的方法名
-	LineNumber   int       `json:"line_number,omitempty"`   // 代码的行号
-	Message      string    `json:"message,omitempty"`       // 实际的日志消息
-	XID          string    `json:"XID,omitempty"`           // 事务的唯一标识
-}
+const (
+	ElasticsearchAuth = "elastic"
+)
 
-type Elasticsearch struct {
-}
+type Elasticsearch struct{}
 
-type ElasticsearchParams struct {
-	LogLevel      string `json:"log_level"`
-	TransactionId string `json:"transaction_id"`
-}
-
-type Match struct {
-	Field map[string]string `json:"match"`
-}
-
-type BoolQuery struct {
-	Must []Match `json:"must"`
-}
-
-type Query struct {
-	Bool BoolQuery `json:"bool"`
-}
-
-type SearchQuery struct {
-	Query Query `json:"query"`
-}
-
-func newSearchQuery(logLevel, transactionID string) (string, error) {
-	must := []Match{
-		{Field: map[string]string{"log_level": logLevel}},
-		{Field: map[string]string{"transaction_id": transactionID}},
-	}
-	boolQuery := BoolQuery{
-		Must: must,
-	}
-	query := Query{
-		Bool: boolQuery,
-	}
-	searchQuery := SearchQuery{
-		Query: query,
-	}
-	queryJSON, err := json.Marshal(searchQuery)
+// QueryLogs is a function that queries specific documents
+func (e *Elasticsearch) QueryLogs(filter map[string]interface{}, currency *utils.Currency, number int) error {
+	client, err := createElasticClient(currency)
 	if err != nil {
-		return "", err
+		return fmt.Errorf("failed to create elasticsearch client: %w", err)
 	}
-	return string(queryJSON), nil
+
+	indexName := currency.Source
+
+	// Build the query based on the filter provided
+	query, err := BuildQueryFromFilter(filter)
+	if err != nil {
+		return err
+	}
+
+	// Execute the search query
+	searchResult, err := client.Search().
+		Index(indexName).
+		Size(number).
+		Query(query).
+		Do(context.Background())
+	if err != nil {
+		return fmt.Errorf("error fetching documents: %w", err)
+	}
+
+	fmt.Printf("Found %d hits.\n", searchResult.TotalHits())
+	processSearchHits(searchResult)
+	return nil
 }
 
-func (e *Elasticsearch) QueryLogs(filter map[string]interface{}) ([]string, error) {
-	currency, ok := filter["currency"].(utils.Currency)
-	if !ok {
-		return nil, fmt.Errorf("error: failed to assert currency type")
+// createElasticClient configures and creates a new Elasticsearch client
+func createElasticClient(currency *utils.Currency) (*elastic.Client, error) {
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
 	}
-	params, ok := filter["Elasticsearch"].(ElasticsearchParams)
-	if !ok {
-		return nil, fmt.Errorf("error: failed to assert elasticsearchParams type")
-	}
-	cfg := elasticsearch.Config{
-		Addresses: []string{currency.Address},
-	}
-	es, err := elasticsearch.NewClient(cfg)
-	if err != nil {
-		log.Fatalf("Error creating the client: %s", err)
-	}
-	query, err := newSearchQuery(params.LogLevel, params.TransactionId)
+
+	client, err := elastic.NewClient(
+		elastic.SetURL(currency.Address),
+		elastic.SetHttpClient(httpClient),
+		elastic.SetSniff(false),
+		elastic.SetBasicAuth(ElasticsearchAuth, currency.Auth),
+	)
 	if err != nil {
 		return nil, err
 	}
+	return client, nil
+}
 
-	res, err := es.Search(
-		es.Search.WithContext(context.Background()),
-		es.Search.WithIndex(currency.Source),
-		es.Search.WithBody(strings.NewReader(query)),
-		es.Search.WithPretty(),
-	)
+// processSearchHits handles and formats the search results
+func processSearchHits(searchResult *elastic.SearchResult) []string {
+	var result []string
 
-	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
-	}
+	for _, hit := range searchResult.Hits.Hits {
+		fmt.Printf("=== Document ID: %s ===\n", hit.Id)
 
-	defer res.Body.Close()
-
-	if res.IsError() {
-		log.Fatalf("Error: %s", res.String())
-	}
-
-	var r map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
-	}
-	var logStrings []string
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		var entry LogEntry
-		source := hit.(map[string]interface{})["_source"]
-		sourceData, _ := json.Marshal(source)
-		if err := json.Unmarshal(sourceData, &entry); err != nil {
-			log.Fatalf("Error unmarshalling log: %s", err)
+		var doc map[string]interface{}
+		if err := json.Unmarshal(hit.Source, &doc); err != nil {
+			log.Printf("Error parsing document: %s", err)
+			continue
 		}
-		logString := fmt.Sprintf("Timestamp: %s, LogLevel: %s, Thread: %s, LoggerClass: %s, LoggerMethod: %s, LineNumber: %d, Message: %s, XID: %s",
-			entry.Timestamp.Format(time.RFC3339),
-			entry.LogLevel,
-			entry.Thread,
-			entry.LoggerClass,
-			entry.LoggerMethod,
-			entry.LineNumber,
-			entry.Message,
-			entry.XID,
-		)
-		logStrings = append(logStrings, logString)
+
+		// Pretty print the document content
+		fmt.Println("Document Source:")
+		for key, value := range doc {
+			fmt.Printf("  %s: %v\n", key, value)
+		}
+		fmt.Println("----------------------------")
+
+		result = append(result, hit.Id) // Store document IDs or other relevant data
 	}
-	return logStrings, nil
+	return result
+}
+
+// BuildQueryFromFilter constructs a BoolQuery from the filter parameters
+func BuildQueryFromFilter(filter map[string]interface{}) (*elastic.BoolQuery, error) {
+	query := elastic.NewBoolQuery()
+
+	for key, value := range filter {
+		switch key {
+		case "logLevel":
+			if v, ok := value.(string); ok {
+				query.Should(elastic.NewTermQuery("logLevel", v))
+			} else {
+				return nil, errors.New("invalid type for logLevel, expected string")
+			}
+		case "module":
+			if v, ok := value.(string); ok {
+				query.Should(elastic.NewTermQuery("module", v))
+			} else {
+				return nil, errors.New("invalid type for module, expected string")
+			}
+		case "xid":
+			if v, ok := value.(string); ok {
+				query.Should(elastic.NewTermQuery("xid", v))
+			} else {
+				return nil, errors.New("invalid type for xid, expected string")
+			}
+		case "branchId":
+			if v, ok := value.(string); ok {
+				query.Should(elastic.NewTermQuery("branchId", v))
+			} else {
+				return nil, errors.New("invalid type for branchId, expected string")
+			}
+		case "resourceId":
+			if v, ok := value.(string); ok {
+				query.Should(elastic.NewTermQuery("resourceId", v))
+			} else {
+				return nil, errors.New("invalid type for resourceId, expected string")
+			}
+		case "message":
+			if v, ok := value.(string); ok {
+				query.Should(elastic.NewMatchQuery("message", v))
+			} else {
+				return nil, errors.New("invalid type for message, expected string")
+			}
+		default:
+			log.Printf("Unknown field: %s\n", key)
+		}
+	}
+	return query, nil
 }

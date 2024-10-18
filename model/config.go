@@ -43,6 +43,7 @@ type Cluster struct {
 	Types      string     `yaml:"types"`
 	Address    string     `yaml:"address"`
 	Source     string     `yaml:"source"`
+	Auth       string     `yaml:"auth"`
 	Collection Collection `yaml:"collection"`
 	Analysis   Analysis   `yaml:"analysis"`
 	Display    Display    `yaml:"display"`

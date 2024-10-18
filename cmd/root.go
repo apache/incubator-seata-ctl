@@ -25,7 +25,6 @@ import (
 	"github.com/seata/seata-ctl/action/common"
 	"github.com/seata/seata-ctl/seata"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -44,10 +43,10 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&credential.ServerPort, "port", 7091, "Seata Server Admin Port")
 	rootCmd.PersistentFlags().StringVar(&credential.Username, "username", "seata", "Username")
 	rootCmd.PersistentFlags().StringVar(&credential.Password, "password", "seata", "Password")
-	viper.BindPFlag("ip", rootCmd.PersistentFlags().Lookup("ip"))
-	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
-	viper.BindPFlag("username", rootCmd.PersistentFlags().Lookup("username"))
-	viper.BindPFlag("password", rootCmd.PersistentFlags().Lookup("password"))
+	//viper.BindPFlag("ip", rootCmd.PersistentFlags().Lookup("ip"))
+	//viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
+	//viper.BindPFlag("username", rootCmd.PersistentFlags().Lookup("username"))
+	//viper.BindPFlag("password", rootCmd.PersistentFlags().Lookup("password"))
 	rootCmd.SetHelpCommand(&cobra.Command{
 		Use:   "seata-ctl",
 		Short: "seata-ctl is a CLI tool for Seata",
