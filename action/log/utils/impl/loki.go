@@ -14,6 +14,7 @@ import (
 
 const (
 	LokiAddressPath = "/loki/api/v1/query_range?"
+	TimeLayout      = "2006-01-02-15:04:05"
 )
 
 type Loki struct{}
@@ -106,9 +107,6 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *utils.Currency
 
 // parseToTimestamp parses a time string to a Unix nanosecond timestamp
 func parseToTimestamp(timeStr string) (int64, error) {
-	// Define the time layout to match the input format
-	const timeLayout = "2006-01-02-15:04:05"
-
 	// Load the specified time zone (UTC in this case)
 	loc, err := time.LoadLocation("UTC")
 	if err != nil {
@@ -116,7 +114,7 @@ func parseToTimestamp(timeStr string) (int64, error) {
 	}
 
 	// Parse the time string using the specified layout and timezone
-	t, err := time.ParseInLocation(timeLayout, timeStr, loc)
+	t, err := time.ParseInLocation(TimeLayout, timeStr, loc)
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse time: %v", err)
 	}
