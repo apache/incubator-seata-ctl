@@ -47,13 +47,13 @@ var Start string
 var End string
 
 func init() {
-	LogCmd.PersistentFlags().StringVar(&LogLevel, "level", "", "seata log level")
-	LogCmd.PersistentFlags().StringVar(&Module, "module", "", "seata module")
+	LogCmd.PersistentFlags().StringVar(&LogLevel, "Level", "", "seata log level")
+	LogCmd.PersistentFlags().StringVar(&Module, "Module", "", "seata module")
 	LogCmd.PersistentFlags().StringVar(&XID, "XID", "", "seata expression")
 	LogCmd.PersistentFlags().StringVar(&BranchID, "BranchID", "", "seata branchId")
 	LogCmd.PersistentFlags().StringVar(&ResourceID, "ResourceID", "", "seata resourceID")
-	LogCmd.PersistentFlags().StringVar(&Message, "message", "", "seata message")
-	LogCmd.PersistentFlags().IntVar(&Number, "number", DefaultNumber, "seata number")
+	LogCmd.PersistentFlags().StringVar(&Message, "Message", "", "seata message")
+	LogCmd.PersistentFlags().IntVar(&Number, "Number", DefaultNumber, "seata number")
 	LogCmd.PersistentFlags().StringVar(&Label, "label", "", "seata label")
 	LogCmd.PersistentFlags().StringVar(&Start, "start", "", "seata start")
 	LogCmd.PersistentFlags().StringVar(&End, "end", "", "seata end")

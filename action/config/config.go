@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-var Path = "/"
+var Path string
 
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
@@ -20,12 +20,11 @@ var ConfigCmd = &cobra.Command{
 			println("Error creating config:", err.Error())
 			log.Fatal(err)
 		}
-		println("Config created successfully!")
 	},
 }
 
 func init() {
-	ConfigCmd.PersistentFlags().StringVar(&Path, "path", "/", "Set config path")
+	ConfigCmd.PersistentFlags().StringVar(&Path, "path", "", "Set config path")
 }
 
 func createSampleConfig() model.Config {
@@ -79,14 +78,15 @@ func createSampleConfig() model.Config {
 // Create a YAML file
 func createYMLFile(path string) error {
 	// Check if the path exists
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return fmt.Errorf("path does not exist: %s", path)
-	}
+	//if _, err := os.Stat(path); os.IsNotExist(err) {
+	//	return fmt.Errorf("path does not exist: %s", path)
+	//}
 
 	// Check if the file already exists
-	ymlFilePath := path + "config.yml"
+	ymlFilePath := "config.yml"
 	if _, err := os.Stat(ymlFilePath); err == nil {
-		return fmt.Errorf("file already exists: %s", path)
+		fmt.Println("Config file already exists!")
+		return nil
 	}
 
 	// Create a sample config object
@@ -113,8 +113,7 @@ func createYMLFile(path string) error {
 	if err != nil {
 		log.Fatalf("Failed to write to YAML config: %v", err)
 	}
-	fmt.Println("YAML config created successfully")
-
+	fmt.Println("Config created successfully!")
 	// Update the path variable
 	Path = path
 	return nil

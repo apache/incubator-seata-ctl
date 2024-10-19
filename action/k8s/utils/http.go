@@ -160,10 +160,10 @@ func sendPostRequest(context *ContextInfo, createCrdPath string, filePath string
 
 	// Return appropriate response based on status code
 	if resp.StatusCode == http.StatusCreated {
-		return "create seata crd success", nil
+		return "Create seata crd success", nil
 	}
 	if resp.StatusCode == http.StatusConflict {
-		return "seata crd already exists", nil
+		return "Seata crd already exists", nil
 	} else {
 		return "error: " + string(body), err
 	}

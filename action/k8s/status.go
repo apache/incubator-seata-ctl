@@ -56,9 +56,9 @@ func getPodsStatusByLabel(namespace, labelSelector string) ([]string, error) {
 
 	// Iterate over all Pods and get their status
 	var statuses []string
-	for _, pod := range pods.Items {
-		statuses = append(statuses, fmt.Sprintf("Pod %s is in %s phase", pod.Name, pod.Status.Phase))
-	}
+	//for _, pod := range pods.Items {
+	//	statuses = append(statuses, fmt.Sprintf("Pod %s is in %s phase", pod.Name, pod.Status.Phase))
+	//}
 
 	// Build formatted status string for output
 	statuses = append(statuses, fmt.Sprintf("%-25s %-10s", "POD NAME", "STATUS")) // Header

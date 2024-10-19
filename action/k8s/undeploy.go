@@ -11,7 +11,7 @@ import (
 
 var UnDeployCmd = &cobra.Command{
 	Use:   "undeploy",
-	Short: "deploy seata in k8s",
+	Short: "undeploy seata in k8s",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := undeploy()
 		if err != nil {

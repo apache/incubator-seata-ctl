@@ -10,16 +10,22 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-const Image = "apache/seata-server:latest"
-const ServiceName = "seata-server-cluster"
-const RequestStorage = "1Gi"
-const LimitStorage = "1Gi"
+const (
+	Image          = "apache/seata-server:latest"
+	ServiceName    = "seata-server-cluster"
+	RequestStorage = "1Gi"
+	LimitStorage   = "1Gi"
+)
 
 var DeployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "deploy seata in k8s",
 	Run: func(cmd *cobra.Command, args []string) {
-		deploy()
+		err := deploy()
+		if err != nil {
+			fmt.Println(err)
+		}
+
 	},
 }
 

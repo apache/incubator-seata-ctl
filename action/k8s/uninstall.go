@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"log"
 )
-
-const CRDname = "seataservers.operator.seata.apache.org"
 
 var UnInstallCmd = &cobra.Command{
 	Use:   "uninstall",
@@ -43,11 +42,22 @@ func UninstallCRD() error {
 		Resource: "customresourcedefinitions",
 	}
 
+	// Assume client and gvr have already been defined
 	err = client.Resource(gvr).Delete(context.TODO(), CRDname, metav1.DeleteOptions{})
 	if err != nil {
-		log.Fatalf("delete CRD failed: %v", err)
+		// Check if the error is a "not found" error
+		if errors.IsNotFound(err) {
+			// The resource does not exist, output a message instead of returning an error
+			fmt.Printf("CRD %s does not exist, no action taken.\n", CRDname)
+		} else {
+			// For other errors, log the error and exit the program
+			log.Fatalf("delete CRD failed: %v", err)
+		}
+	} else {
+		// Successfully deleted the resource
+		fmt.Printf("CRD %s deleted successfully.\n", CRDname)
 	}
-	fmt.Printf("delete CRD success，name: %s\n", "seataservers.operator.seata.apache.org")
+
 	return nil
 }
 
@@ -56,10 +66,20 @@ func UnDeploymentController() error {
 	if err != nil {
 		return err
 	}
-	err = clientset.AppsV1().Deployments(Namespace).Delete(context.TODO(), "seata-k8s-controller-manager", metav1.DeleteOptions{})
+	// Assume clientset has already been defined
+	err = clientset.AppsV1().Deployments(Namespace).Delete(context.TODO(), Deployname, metav1.DeleteOptions{})
 	if err != nil {
-		log.Fatalf("Error creating deployment: %s", err.Error())
+		// Check if the error is a "not found" error
+		if errors.IsNotFound(err) {
+			// The deployment does not exist, output a message instead of returning an error
+			fmt.Printf("Deployment 'seata-k8s-controller-manager' does not exist in namespace '%s', no action taken.\n", Namespace)
+		} else {
+			// For other errors, log the error and exit the program
+			log.Fatalf("Error deleting deployment: %s", err.Error())
+		}
+	} else {
+		// Successfully deleted the deployment
+		fmt.Printf("Deployment 'seata-k8s-controller-manager' deleted successfully from namespace '%s'.\n", Namespace)
 	}
-	fmt.Println("Deployment created successfully")
-	return err
+	return nil
 }
