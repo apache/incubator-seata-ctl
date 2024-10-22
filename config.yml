@@ -1,0 +1,49 @@
+kubernetes:
+  clusters:
+    - name: "cluster1"
+      kubeconfigpath: "/Users/wpy/.kube/config"
+      ymlpath: ""
+    - name: "seata"
+      kubeconfigpath: "/Users/wpy/Documents/Kubernetes/remotekube.txt"
+      ymlpath: ""
+prometheus:
+  servers:
+    - name: "prometheus"
+      address: "http://localhost:9092"
+      auth: ""
+log:
+  clusters:
+    - name: "es"
+      types: "ElasticSearch"
+      address: "https://localhost:9200"
+      source: "seata_logs"
+      auth: "bu4AC50REtt_7rUqddMe"
+      collection:
+        enable: true
+        local: ""
+      analysis:
+        enable: true
+        local: ""
+      display:
+        displayType: ""
+        path: ""
+        local: ""
+    - name: "loki"
+      types: "Loki"
+      address: "http://localhost:3100"
+      source: ""
+      auth: ""
+      collection:
+        enable: true
+        local: ""
+      analysis:
+        enable: true
+        local: ""
+      display:
+        displayType: ""
+        path: ""
+        local: ""
+context:
+  kubernetes: "cluster1"
+  prometheus: "prometheus"
+  log: "loki"
