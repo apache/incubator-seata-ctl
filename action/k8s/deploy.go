@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	Image          = "apache/seata-server:latest"
-	ServiceName    = "seata-server-cluster"
-	RequestStorage = "1Gi"
-	LimitStorage   = "1Gi"
+	DefaultServerImage = "apache/seata-server:latest"
+	ServiceName        = "seata-server-cluster"
+	RequestStorage     = "1Gi"
+	LimitStorage       = "1Gi"
 )
 
 var DeployCmd = &cobra.Command{
@@ -25,18 +25,21 @@ var DeployCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println(err)
 		}
-
 	},
 }
 
-var Name string
-var Replicas int32
-var Namespace string
+var (
+	Name      string
+	Replicas  int32
+	Namespace string
+	Image     string
+)
 
 func init() {
 	DeployCmd.PersistentFlags().StringVar(&Name, "name", "example-seataserver", "Seataserver name")
 	DeployCmd.PersistentFlags().Int32Var(&Replicas, "replicas", 1, "Replicas number")
 	DeployCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
+	DeployCmd.PersistentFlags().StringVar(&Image, "image", DefaultServerImage, "Seata server image")
 }
 
 func deploy() error {

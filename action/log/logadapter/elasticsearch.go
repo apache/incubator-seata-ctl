@@ -1,4 +1,4 @@
-package impl
+package logadapter
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/olivere/elastic/v7"
-	"github.com/seata/seata-ctl/action/log/utils"
 	"log"
 	"net/http"
 )
@@ -19,7 +18,7 @@ const (
 type Elasticsearch struct{}
 
 // QueryLogs is a function that queries specific documents
-func (e *Elasticsearch) QueryLogs(filter map[string]interface{}, currency *utils.Currency, number int) error {
+func (e *Elasticsearch) QueryLogs(filter map[string]interface{}, currency *Currency, number int) error {
 	client, err := createElasticClient(currency)
 	if err != nil {
 		return fmt.Errorf("failed to create elasticsearch client: %w", err)
@@ -49,7 +48,7 @@ func (e *Elasticsearch) QueryLogs(filter map[string]interface{}, currency *utils
 }
 
 // createElasticClient configures and creates a new Elasticsearch client
-func createElasticClient(currency *utils.Currency) (*elastic.Client, error) {
+func createElasticClient(currency *Currency) (*elastic.Client, error) {
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -75,8 +74,6 @@ func processSearchHits(searchResult *elastic.SearchResult) []string {
 	var result []string
 
 	for _, hit := range searchResult.Hits.Hits {
-		fmt.Printf("=== Document ID: %s ===\n", hit.Id)
-
 		var doc map[string]interface{}
 		if err := json.Unmarshal(hit.Source, &doc); err != nil {
 			log.Printf("Error parsing document: %s", err)
@@ -86,9 +83,9 @@ func processSearchHits(searchResult *elastic.SearchResult) []string {
 		// Pretty print the document content
 		fmt.Println("Document Source:")
 		for key, value := range doc {
-			fmt.Printf("  %s: %v\n", key, value)
+			log.Printf("  %s: %v", key, value)
 		}
-		fmt.Println("----------------------------")
+		log.Println("----------------------------")
 
 		result = append(result, hit.Id) // Store document IDs or other relevant data
 	}

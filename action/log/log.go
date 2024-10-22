@@ -2,8 +2,7 @@ package log
 
 import (
 	"fmt"
-	"github.com/seata/seata-ctl/action/log/utils"
-	"github.com/seata/seata-ctl/action/log/utils/impl"
+	"github.com/seata/seata-ctl/action/log/logadapter"
 	"github.com/seata/seata-ctl/model"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -31,20 +30,22 @@ var LogCmd = &cobra.Command{
 }
 
 // ElasticSearch
-
-var LogLevel string
-var Module string
-var XID string
-var BranchID string
-var ResourceID string
-var Message string
-var Number int
+var (
+	LogLevel   string
+	Module     string
+	XID        string
+	BranchID   string
+	ResourceID string
+	Message    string
+	Number     int
+)
 
 // Loki
-
-var Label string
-var Start string
-var End string
+var (
+	Label string
+	Start string
+	End   string
+)
 
 func init() {
 	LogCmd.PersistentFlags().StringVar(&LogLevel, "Level", "", "seata log level")
@@ -66,24 +67,20 @@ func getLog() error {
 	}
 	logType := context.Types
 
-	var client utils.LogQuery
+	var client logadapter.LogQuery
 	var filter = make(map[string]interface{})
 
 	switch logType {
 	case ElasticSearchType:
 		{
-			client = &impl.Elasticsearch{}
+			client = &logadapter.Elasticsearch{}
 			filter = buildElasticSearchFilter()
 		}
 	case LokiType:
 		{
-			client = &impl.Loki{}
+			client = &logadapter.Loki{}
 			filter = buildLokiFilter()
 		}
-		//case "Local":
-		//	{
-		//		return &impl.Local{}, nil, nil
-		//	}
 	}
 
 	if client == nil {
@@ -101,7 +98,7 @@ func getLog() error {
 	return nil
 }
 
-func getContext() (*model.Cluster, *utils.Currency, error) {
+func getContext() (*model.Cluster, *logadapter.Currency, error) {
 	file, err := os.ReadFile("config.yml")
 	if err != nil {
 		log.Fatalf("Failed to read config.yml: %v", err)
@@ -114,7 +111,7 @@ func getContext() (*model.Cluster, *utils.Currency, error) {
 	contextName := config.Context.Log
 	for _, cluster := range config.Log.Clusters {
 		if cluster.Name == contextName {
-			currency := utils.Currency{
+			currency := logadapter.Currency{
 				Address: cluster.Address,
 				Source:  cluster.Source,
 				Auth:    cluster.Auth,

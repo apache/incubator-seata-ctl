@@ -125,12 +125,12 @@ func generateTerminalLineChart(response *PrometheusResponse, metricName string) 
 			if valueStr, ok := result.Value[1].(string); ok {
 				value, err := strconv.ParseFloat(valueStr, 64)
 				if err != nil {
-					fmt.Println("Value: Invalid number format")
+					return fmt.Errorf("error converting value to float: %v", err)
 				} else {
 					yValues = append(yValues, value)
 				}
 			} else {
-				fmt.Println("Value: Invalid value format")
+				return fmt.Errorf("error converting value to float: %v", result.Value[1])
 			}
 		}
 	}

@@ -1,9 +1,8 @@
-package impl
+package logadapter
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/seata/seata-ctl/action/log/utils"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,7 +31,7 @@ type LokiQueryResult struct {
 }
 
 // QueryLogs queries logs from Loki based on the filter and settings provided
-func (l *Loki) QueryLogs(filter map[string]interface{}, currency *utils.Currency, number int) error {
+func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, number int) error {
 
 	// Prepare the query URL with time range
 	params := url.Values{}

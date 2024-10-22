@@ -25,6 +25,8 @@ const (
 
 	CRDname    = "seataservers.operator.seata.apache.org"
 	Deployname = "seata-k8s-controller-manager"
+
+	DefaultControllerImage = "apache/seata-controller:latest"
 )
 
 var InstallCmd = &cobra.Command{
@@ -42,8 +44,11 @@ var InstallCmd = &cobra.Command{
 	},
 }
 
+var ControllerImage string
+
 func init() {
 	InstallCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
+	InstallCmd.PersistentFlags().StringVar(&ControllerImage, "image", DefaultControllerImage, "Namespace name")
 }
 
 // DeployCRD deploys the custom resource definition.
@@ -105,7 +110,7 @@ func DeployController() error {
 					Containers: []corev1.Container{
 						{
 							Name:  deploymentName,
-							Image: "bearslyricattack/seata-controller:latest",
+							Image: ControllerImage,
 							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: 80,
