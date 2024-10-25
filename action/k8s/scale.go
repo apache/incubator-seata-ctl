@@ -10,6 +10,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+const (
+	DefaultReplicas = 1
+)
+
 var ScaleCmd = &cobra.Command{
 	Use:   "scale",
 	Short: "scale seata in k8s",
@@ -23,7 +27,7 @@ var ScaleCmd = &cobra.Command{
 
 func init() {
 	ScaleCmd.PersistentFlags().StringVar(&Name, "name", "example-seataserver", "Seataserver name")
-	ScaleCmd.PersistentFlags().Int32Var(&Replicas, "replicas", 1, "Replicas number")
+	ScaleCmd.PersistentFlags().Int32Var(&Replicas, "replicas", DefaultReplicas, "Replicas number")
 	ScaleCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
 }
 

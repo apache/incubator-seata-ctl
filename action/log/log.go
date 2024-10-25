@@ -13,9 +13,15 @@ import (
 const (
 	ElasticSearchType = "ElasticSearch"
 	DefaultNumber     = 10
+	DefaultLogLevel   = ""
 )
+
 const (
 	LokiType = "Loki"
+)
+
+const (
+	LocalType = "Local"
 )
 
 var LogCmd = &cobra.Command{
@@ -48,13 +54,13 @@ var (
 )
 
 func init() {
-	LogCmd.PersistentFlags().StringVar(&LogLevel, "Level", "", "seata log level")
-	LogCmd.PersistentFlags().StringVar(&Module, "Module", "", "seata module")
-	LogCmd.PersistentFlags().StringVar(&XID, "XID", "", "seata expression")
-	LogCmd.PersistentFlags().StringVar(&BranchID, "BranchID", "", "seata branchId")
-	LogCmd.PersistentFlags().StringVar(&ResourceID, "ResourceID", "", "seata resourceID")
-	LogCmd.PersistentFlags().StringVar(&Message, "Message", "", "seata message")
-	LogCmd.PersistentFlags().IntVar(&Number, "Number", DefaultNumber, "seata number")
+	LogCmd.PersistentFlags().StringVar(&LogLevel, "level", DefaultLogLevel, "seata log level")
+	LogCmd.PersistentFlags().StringVar(&Module, "module", "", "seata module")
+	LogCmd.PersistentFlags().StringVar(&XID, "xid", "", "seata expression")
+	LogCmd.PersistentFlags().StringVar(&BranchID, "banchID", "", "seata branchId")
+	LogCmd.PersistentFlags().StringVar(&ResourceID, "resourceID", "", "seata resourceID")
+	LogCmd.PersistentFlags().StringVar(&Message, "message", "", "seata message")
+	LogCmd.PersistentFlags().IntVar(&Number, "number", DefaultNumber, "seata number")
 	LogCmd.PersistentFlags().StringVar(&Label, "label", "", "seata label")
 	LogCmd.PersistentFlags().StringVar(&Start, "start", "", "seata start")
 	LogCmd.PersistentFlags().StringVar(&End, "end", "", "seata end")
@@ -80,6 +86,11 @@ func getLog() error {
 		{
 			client = &logadapter.Loki{}
 			filter = buildLokiFilter()
+		}
+	case LocalType:
+		{
+			client = &logadapter.Local{}
+			filter = buildLocalFilter()
 		}
 	}
 
@@ -148,14 +159,20 @@ func buildElasticSearchFilter() map[string]interface{} {
 func buildLokiFilter() map[string]interface{} {
 	filter := make(map[string]interface{})
 	filter["query"] = Label
-	filter["number"] = Number
 	if Start != "" {
 		filter["start"] = Start
 	}
 	if End != "" {
 		filter["end"] = End
 	}
+	return filter
+}
 
+func buildLocalFilter() map[string]interface{} {
+	filter := make(map[string]interface{})
+	if LogLevel != "" {
+		filter["logLevel"] = LogLevel
+	}
 	return filter
 }
 

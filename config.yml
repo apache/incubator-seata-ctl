@@ -16,7 +16,7 @@ log:
     - name: "es"
       types: "ElasticSearch"
       address: "https://localhost:9200"
-      source: "seata_logs"
+      source: "logstash-2024.10.24"
       auth: "bu4AC50REtt_7rUqddMe"
       collection:
         enable: true
@@ -43,7 +43,22 @@ log:
         displayType: ""
         path: ""
         local: ""
+    - name: "local"
+      types: "Local"
+      address: "http://localhost:8080"
+      source: "seata"
+      auth: ""
+      collection:
+        enable: true
+        local: ""
+      analysis:
+        enable: true
+        local: ""
+      display:
+        displayType: ""
+        path: ""
+        local: ""
 context:
   kubernetes: "cluster1"
   prometheus: "prometheus"
-  log: "loki"
+  log: "local"
