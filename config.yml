@@ -61,4 +61,4 @@ log:
 context:
   kubernetes: "cluster1"
   prometheus: "prometheus"
-  log: "es"
+  log: "loki"
