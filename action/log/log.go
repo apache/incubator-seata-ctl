@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	ElasticSearchType = "ElasticSearch"
-	DefaultNumber     = 10
-	DefaultLogLevel   = "-"
+	ElasticSearchType    = "ElasticSearch"
+	DefaultNumber        = 10
+	DefaultLogLevel      = ""
+	DefaultLocalLogLevel = "-"
 )
 
 const (
@@ -169,6 +170,9 @@ func buildLocalFilter() map[string]interface{} {
 	filter := make(map[string]interface{})
 	if Level != "" {
 		filter["logLevel"] = Level
+	} else {
+		//reset the default value
+		filter["logLevel"] = DefaultLocalLogLevel
 	}
 	return filter
 }

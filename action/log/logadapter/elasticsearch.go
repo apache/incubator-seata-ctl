@@ -4,11 +4,11 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/olivere/elastic/v7"
-	"log"
+	"github.com/seata/seata-ctl/tool"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -42,8 +42,10 @@ func (e *Elasticsearch) QueryLogs(filter map[string]interface{}, currency *Curre
 		return fmt.Errorf("error fetching documents: %w", err)
 	}
 
-	fmt.Printf("Found %d hits.\n", searchResult.TotalHits())
-	processSearchHits(searchResult)
+	err = processSearchHits(searchResult)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -70,26 +72,34 @@ func createElasticClient(currency *Currency) (*elastic.Client, error) {
 }
 
 // processSearchHits handles and formats the search results
-func processSearchHits(searchResult *elastic.SearchResult) []string {
-	var result []string
+func processSearchHits(searchResult *elastic.SearchResult) error {
+
+	if len(searchResult.Hits.Hits) == 0 {
+		return fmt.Errorf("no documents found")
+	}
 
 	for _, hit := range searchResult.Hits.Hits {
 		var doc map[string]interface{}
 		if err := json.Unmarshal(hit.Source, &doc); err != nil {
-			log.Printf("Error parsing document: %s", err)
-			continue
+			return fmt.Errorf("failed to unmarshal document: %w", err)
 		}
 
 		// Pretty print the document content
-		fmt.Println("Document Source:")
 		for key, value := range doc {
-			log.Printf("  %s: %v", key, value)
+			if key == "log" {
+				if strings.Contains(value.(string), "INFO") {
+					tool.Logger.Info(fmt.Sprintf("%v", value))
+				}
+				if strings.Contains(value.(string), "ERROR") {
+					tool.Logger.Error(fmt.Sprintf("%v", value))
+				}
+				if strings.Contains(value.(string), "WARN") {
+					tool.Logger.Warn(fmt.Sprintf("%v", value))
+				}
+			}
 		}
-		log.Println("----------------------------")
-
-		result = append(result, hit.Id) // Store document IDs or other relevant data
 	}
-	return result
+	return nil
 }
 
 // BuildQueryFromFilter constructs a BoolQuery from the filter parameters
@@ -102,40 +112,40 @@ func BuildQueryFromFilter(filter map[string]interface{}) (*elastic.BoolQuery, er
 			if v, ok := value.(string); ok {
 				query.Should(elastic.NewTermQuery("logLevel", v))
 			} else {
-				return nil, errors.New("invalid type for logLevel, expected string")
+				return nil, fmt.Errorf("invalid type for logLevel, expected string")
 			}
 		case "module":
 			if v, ok := value.(string); ok {
 				query.Should(elastic.NewTermQuery("module", v))
 			} else {
-				return nil, errors.New("invalid type for module, expected string")
+				return nil, fmt.Errorf("invalid type for module, expected string")
 			}
 		case "xid":
 			if v, ok := value.(string); ok {
 				query.Should(elastic.NewTermQuery("xid", v))
 			} else {
-				return nil, errors.New("invalid type for xid, expected string")
+				return nil, fmt.Errorf("invalid type for xid, expected string")
 			}
 		case "branchId":
 			if v, ok := value.(string); ok {
 				query.Should(elastic.NewTermQuery("branchId", v))
 			} else {
-				return nil, errors.New("invalid type for branchId, expected string")
+				return nil, fmt.Errorf("invalid type for branchId, expected string")
 			}
 		case "resourceId":
 			if v, ok := value.(string); ok {
 				query.Should(elastic.NewTermQuery("resourceId", v))
 			} else {
-				return nil, errors.New("invalid type for resourceId, expected string")
+				return nil, fmt.Errorf("invalid type for resourceId, expected string")
 			}
 		case "message":
 			if v, ok := value.(string); ok {
 				query.Should(elastic.NewMatchQuery("message", v))
 			} else {
-				return nil, errors.New("invalid type for message, expected string")
+				return nil, fmt.Errorf("invalid type for message, expected string")
 			}
 		default:
-			log.Printf("Unknown field: %s\n", key)
+			return nil, fmt.Errorf("unknown field: %s", key)
 		}
 	}
 	return query, nil

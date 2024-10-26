@@ -16,7 +16,7 @@ log:
     - name: "es"
       types: "ElasticSearch"
       address: "https://localhost:9200"
-      source: "seata_logs"
+      source: "test"
       auth: "bu4AC50REtt_7rUqddMe"
       collection:
         enable: true
