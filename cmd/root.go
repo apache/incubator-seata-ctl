@@ -19,6 +19,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/seata/seata-ctl/tool"
 	"os"
 
 	"github.com/seata/seata-ctl/action"
@@ -68,6 +69,8 @@ func Execute() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+
+	tool.InitLogger()
 
 	var address = ""
 

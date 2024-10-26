@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -20,7 +21,7 @@ var ScaleCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := scale()
 		if err != nil {
-			fmt.Println(err)
+			tool.Logger.Errorf("scale err:%v", err)
 		}
 	},
 }
@@ -47,8 +48,7 @@ func scale() error {
 	var seataServer *unstructured.Unstructured
 	seataServer, err = client.Resource(gvr).Namespace(namespace).Get(context.TODO(), Name, metav1.GetOptions{})
 	if seataServer == nil {
-		fmt.Println("This seata server does not exits！")
-		return nil
+		return fmt.Errorf("This seata server does not exits！" + Name)
 	}
 	seataServer.Object["spec"].(map[string]interface{})["replicas"] = Replicas
 
@@ -57,6 +57,6 @@ func scale() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("CR scale success，name: %s\n", Name)
+	tool.Logger.Infof("CR scale success，name: %s\n", Name)
 	return nil
 }

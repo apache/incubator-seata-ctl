@@ -3,8 +3,10 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/seata/seata-ctl/tool"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -67,11 +69,18 @@ func (l *Local) QueryLogs(filter map[string]interface{}, currency *Currency, num
 	}
 
 	// Print the logs in a structured format
-	fmt.Printf("Application ID: %s\n", queryResponse.ApplicationID)
-	fmt.Printf("Log Level: %s\n", queryResponse.LogLevel)
-	fmt.Println("Logs:")
-	for _, logData := range queryResponse.Logs {
-		fmt.Printf("[%s] [%s]: %s\n", logData.Timestamp, logData.LogLevel, logData.LogMessage)
+	for _, value := range queryResponse.Logs {
+		res := fmt.Sprintf("[%s]: %s\n", value.Timestamp, value.LogMessage)
+		fmt.Println(value.LogMessage)
+		if strings.Contains(value.LogMessage, "INFO") {
+			tool.Logger.Info(fmt.Sprintf("%v", res))
+		}
+		if strings.Contains(value.LogMessage, "ERROR") {
+			tool.Logger.Error(fmt.Sprintf("%v", res))
+		}
+		if strings.Contains(value.LogMessage, "WARN") {
+			tool.Logger.Warn(fmt.Sprintf("%v", res))
+		}
 	}
 	return nil
 }

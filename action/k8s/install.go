@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	_ "gopkg.in/yaml.v3"
 	_ "io/ioutil"
@@ -16,7 +17,6 @@ import (
 	_ "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	_ "k8s.io/apimachinery/pkg/runtime/schema"
 	_ "k8s.io/client-go/applyconfigurations/meta/v1"
-	"log"
 )
 
 const (
@@ -35,11 +35,11 @@ var InstallCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := DeployCRD()
 		if err != nil {
-			log.Fatal(err)
+			tool.Logger.Errorf("install CRD err: %v", err)
 		}
 		err = DeployController()
 		if err != nil {
-			log.Fatal(err)
+			tool.Logger.Errorf("install Controller err: %v", err)
 		}
 	},
 }
@@ -64,9 +64,9 @@ func DeployCRD() error {
 // DeployController deploys the controller for the custom resource.
 func DeployController() error {
 	// Get Kubernetes client
-	clientset, err := utils.GetClient()
+	client, err := utils.GetClient()
 	if err != nil {
-		return fmt.Errorf("error getting clientset: %v", err)
+		return fmt.Errorf("get client err: %v", err)
 	}
 
 	// Define the Deployment name and namespace
@@ -74,11 +74,10 @@ func DeployController() error {
 	namespace := Namespace
 
 	// Check if the Deployment already exists
-	_, err = clientset.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
+	_, err = client.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
 	if err == nil {
 		// If the Deployment exists, output a message and return
-		fmt.Printf("Deployment '%s' already exists in the '%s' namespace\n", deploymentName, Namespace)
-		return nil
+		return fmt.Errorf("Deployment '%s' already exists in the '%s' namespace\n", deploymentName, Namespace)
 	} else if !errors.IsNotFound(err) {
 		// If there is an error other than "not found", return it
 		return fmt.Errorf("error checking for existing deployment: %v", err)
@@ -124,10 +123,10 @@ func DeployController() error {
 	}
 
 	// Create the Deployment
-	_, err = clientset.AppsV1().Deployments(namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	_, err = client.AppsV1().Deployments(namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("error creating deployment: %v", err)
 	}
-	fmt.Println("Deployment created successfully")
+	tool.Logger.Infof("Deployment created successfully")
 	return nil
 }

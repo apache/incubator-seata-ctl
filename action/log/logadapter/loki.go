@@ -3,11 +3,13 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/seata/seata-ctl/tool"
+	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -36,7 +38,7 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 	// Prepare the query URL with time range
 	params := url.Values{}
 	params.Set("query", filter["query"].(string))
-	params.Set("limit", strconv.Itoa(filter["number"].(int)))
+	params.Set("limit", strconv.Itoa(number))
 
 	// Set start time if provided
 	if value, ok := filter["start"]; ok {
@@ -59,21 +61,26 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 	// Send GET request to Loki
 	resp, err := http.Get(queryURL)
 	if err != nil {
-		log.Fatalf("Error sending request to Loki: %v", err)
+		return fmt.Errorf("error sending request to Loki: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			tool.Logger.Errorf("Failed to close response body: %v", err)
+		}
+	}(resp.Body)
 
 	// Read the response body
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Error reading response from Loki: %v", err)
+		return fmt.Errorf("error reading response from Loki: %v", err)
 	}
 
 	// Parse the JSON response
 	var result LokiQueryResult
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		log.Fatalf("Error parsing Loki response: %v", err)
+		return fmt.Errorf("error parsing Loki response: %v", err)
 	}
 
 	// Process and print logs
@@ -81,21 +88,19 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 		for _, stream := range result.Data.Result {
 			for _, entry := range stream.Values {
 				// Extract timestamp and log message
-				timestampStr := entry[0]
-				logLine := entry[1]
-
-				// Convert nanosecond timestamp to int64
-				timestampInt, err := strconv.ParseInt(timestampStr, 10, 64)
-				if err != nil {
-					fmt.Printf("Failed to convert timestamp: %v\n", err)
-					continue
-				}
-
-				// Convert Unix nanosecond timestamp to readable format
-				readableTime := time.Unix(0, timestampInt).Format("2006-01-02 15:04:05")
+				value := entry[1]
 
 				// Print the readable timestamp and log message
-				fmt.Printf("Timestamp: %s, Log: %s\n", readableTime, logLine)
+				fmt.Printf("%s\n", value)
+				if strings.Contains(value, "INFO") {
+					tool.Logger.Info(fmt.Sprintf("%v", value))
+				}
+				if strings.Contains(value, "ERROR") {
+					tool.Logger.Error(fmt.Sprintf("%v", value))
+				}
+				if strings.Contains(value, "WARN") {
+					tool.Logger.Warn(fmt.Sprintf("%v", value))
+				}
 			}
 		}
 	} else {
@@ -120,6 +125,5 @@ func parseToTimestamp(timeStr string) (int64, error) {
 
 	// Convert to Unix nanosecond timestamp
 	timestamp := t.UnixNano()
-
 	return timestamp, nil
 }

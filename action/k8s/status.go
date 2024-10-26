@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const Label = "cr_name"
 
 var StatusCmd = &cobra.Command{
 	Use:   "status",
@@ -14,12 +17,10 @@ var StatusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := status()
 		if err != nil {
-			fmt.Println(err)
+			tool.Logger.Errorf("get k8s status error: %v", err)
 		}
 	},
 }
-
-const Label = "cr_name"
 
 func init() {
 	StatusCmd.PersistentFlags().StringVar(&Name, "name", "list", "Seataserver name")
@@ -33,7 +34,7 @@ func status() error {
 	}
 	// Print formatted Pod status information
 	for _, status := range statuses {
-		fmt.Println(status)
+		tool.Logger.Infof("status: %s", status)
 	}
 	return nil
 }
@@ -56,9 +57,6 @@ func getPodsStatusByLabel(namespace, labelSelector string) ([]string, error) {
 
 	// Iterate over all Pods and get their status
 	var statuses []string
-	//for _, pod := range pods.Items {
-	//	statuses = append(statuses, fmt.Sprintf("Pod %s is in %s phase", pod.Name, pod.Status.Phase))
-	//}
 
 	// Build formatted status string for output
 	statuses = append(statuses, fmt.Sprintf("%-25s %-10s", "POD NAME", "STATUS")) // Header

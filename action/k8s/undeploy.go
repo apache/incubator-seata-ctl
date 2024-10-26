@@ -2,8 +2,8 @@ package k8s
 
 import (
 	"context"
-	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -15,7 +15,7 @@ var UnDeployCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := undeploy()
 		if err != nil {
-			fmt.Println(err)
+			tool.Logger.Errorf("undeploy error: %v", err)
 		}
 	},
 }
@@ -42,6 +42,8 @@ func undeploy() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("CR delete success，name: %s\n", Name)
+
+	tool.Logger.Infof("CR delete success，name: %s\n", Name)
+
 	return nil
 }

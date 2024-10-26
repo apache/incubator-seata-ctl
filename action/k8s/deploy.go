@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -23,7 +24,7 @@ var DeployCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := deploy()
 		if err != nil {
-			fmt.Println(err)
+			tool.Logger.Errorf("deploy err:%v", err)
 		}
 	},
 }
@@ -57,8 +58,7 @@ func deploy() error {
 	var seataServer *unstructured.Unstructured
 	seataServer, err = client.Resource(gvr).Namespace(namespace).Get(context.TODO(), Name, metav1.GetOptions{})
 	if seataServer != nil {
-		fmt.Println("This seata server already exits！")
-		return nil
+		return fmt.Errorf("seata server already exist! name:" + Name)
 	}
 	seataServer = &unstructured.Unstructured{
 		Object: map[string]interface{}{
@@ -89,6 +89,6 @@ func deploy() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("CR install success，name: %s\n", Name)
+	tool.Logger.Infof("CR install success，name: %s\n", Name)
 	return nil
 }

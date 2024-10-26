@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"github.com/seata/seata-ctl/action/log/logadapter"
 	"github.com/seata/seata-ctl/model"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-	"log"
 	"os"
 )
 
 const (
 	ElasticSearchType = "ElasticSearch"
 	DefaultNumber     = 10
-	DefaultLogLevel   = ""
+	DefaultLogLevel   = "-"
 )
 
 const (
@@ -30,14 +30,14 @@ var LogCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := getLog()
 		if err != nil {
-			fmt.Println(err)
+			tool.Logger.Errorf("get log error: %s", err)
 		}
 	},
 }
 
 // ElasticSearch
 var (
-	LogLevel   string
+	Level      string
 	Module     string
 	XID        string
 	BranchID   string
@@ -54,7 +54,7 @@ var (
 )
 
 func init() {
-	LogCmd.PersistentFlags().StringVar(&LogLevel, "level", DefaultLogLevel, "seata log level")
+	LogCmd.PersistentFlags().StringVar(&Level, "level", DefaultLogLevel, "seata log level")
 	LogCmd.PersistentFlags().StringVar(&Module, "module", "", "seata module")
 	LogCmd.PersistentFlags().StringVar(&XID, "xid", "", "seata expression")
 	LogCmd.PersistentFlags().StringVar(&BranchID, "banchID", "", "seata branchId")
@@ -103,21 +103,18 @@ func getLog() error {
 		return err
 	}
 
-	//reset var
-	//ResetAllVariables()
-
 	return nil
 }
 
 func getContext() (*model.Cluster, *logadapter.Currency, error) {
 	file, err := os.ReadFile("config.yml")
 	if err != nil {
-		log.Fatalf("Failed to read config.yml: %v", err)
+		return nil, nil, fmt.Errorf("read config.yml error: %s", err)
 	}
 	var config model.Config
 	err = yaml.Unmarshal(file, &config)
 	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		return nil, nil, fmt.Errorf("unmarshal config.yml error: %s", err)
 	}
 	contextName := config.Context.Log
 	for _, cluster := range config.Log.Clusters {
@@ -135,8 +132,8 @@ func getContext() (*model.Cluster, *logadapter.Currency, error) {
 
 func buildElasticSearchFilter() map[string]interface{} {
 	filter := make(map[string]interface{})
-	if LogLevel != "" {
-		filter["logLevel"] = LogLevel
+	if Level != "" {
+		filter["logLevel"] = Level
 	}
 	if Module != "" {
 		filter["module"] = Module
@@ -170,25 +167,8 @@ func buildLokiFilter() map[string]interface{} {
 
 func buildLocalFilter() map[string]interface{} {
 	filter := make(map[string]interface{})
-	if LogLevel != "" {
-		filter["logLevel"] = LogLevel
+	if Level != "" {
+		filter["logLevel"] = Level
 	}
 	return filter
-}
-
-// ResetAllVariables resets all global variables to their zero values
-func ResetAllVariables() {
-	// Reset ElasticSearch-related variables
-	LogLevel = ""
-	Module = ""
-	XID = ""
-	BranchID = ""
-	ResourceID = ""
-	Message = ""
-	Number = 0
-
-	// Reset Loki-related variables
-	Label = ""
-	Start = ""
-	End = ""
 }

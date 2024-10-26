@@ -2,13 +2,12 @@ package k8s
 
 import (
 	"context"
-	"fmt"
 	"github.com/seata/seata-ctl/action/k8s/utils"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"log"
 )
 
 var UnInstallCmd = &cobra.Command{
@@ -17,11 +16,11 @@ var UnInstallCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := UninstallCRD()
 		if err != nil {
-			log.Fatal(err)
+			tool.Logger.Errorf("uninstall CRD err:%v", err)
 		}
 		err = UnDeploymentController()
 		if err != nil {
-			log.Fatal(err)
+			tool.Logger.Errorf("uninstall Deployment err:%v", err)
 		}
 	},
 }
@@ -48,38 +47,39 @@ func UninstallCRD() error {
 		// Check if the error is a "not found" error
 		if errors.IsNotFound(err) {
 			// The resource does not exist, output a message instead of returning an error
-			fmt.Printf("CRD %s does not exist, no action taken.\n", CRDname)
+			tool.Logger.Infof("CRD %s does not exist, no action taken.\n", CRDname)
 		} else {
 			// For other errors, log the error and exit the program
-			log.Fatalf("delete CRD failed: %v", err)
+			tool.Logger.Errorf("delete CRD failed: %v", err)
 		}
 	} else {
 		// Successfully deleted the resource
-		fmt.Printf("CRD %s deleted successfully.\n", CRDname)
+		tool.Logger.Infof("delete CRD %s successfully.\n", CRDname)
 	}
 
 	return nil
 }
 
 func UnDeploymentController() error {
-	clientset, err := utils.GetClient()
+	client, err := utils.GetClient()
 	if err != nil {
 		return err
 	}
-	// Assume clientset has already been defined
-	err = clientset.AppsV1().Deployments(Namespace).Delete(context.TODO(), Deployname, metav1.DeleteOptions{})
+
+	// Assume client has already been defined
+	err = client.AppsV1().Deployments(Namespace).Delete(context.TODO(), Deployname, metav1.DeleteOptions{})
 	if err != nil {
 		// Check if the error is a "not found" error
 		if errors.IsNotFound(err) {
 			// The deployment does not exist, output a message instead of returning an error
-			fmt.Printf("Deployment 'seata-k8s-controller-manager' does not exist in namespace '%s', no action taken.\n", Namespace)
+			tool.Logger.Infof("Deployment 'seata-k8s-controller-manager' does not exist in namespace '%s', no action taken.\n", Namespace)
 		} else {
 			// For other errors, log the error and exit the program
-			log.Fatalf("Error deleting deployment: %s", err.Error())
+			tool.Logger.Errorf("Error deleting deployment: %s", err.Error())
 		}
 	} else {
 		// Successfully deleted the deployment
-		fmt.Printf("Deployment 'seata-k8s-controller-manager' deleted successfully from namespace '%s'.\n", Namespace)
+		tool.Logger.Infof("deleted Controller %s successfully ", Deployname)
 	}
 	return nil
 }

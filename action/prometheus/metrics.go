@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/guptarohit/asciigraph"
+	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/model"
+	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,12 +22,14 @@ var MetricsCmd = &cobra.Command{
 	Short: "Show Prometheus metrics",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := showMetrics(); err != nil {
-			fmt.Println(err)
+			tool.Logger.Errorf("Failed to show metrics: %v", err)
 		}
 	},
 }
 
-var Target string
+var (
+	Target string
+)
 
 func init() {
 	MetricsCmd.PersistentFlags().StringVar(&Target, "target", "seata_transaction_summary", "Namespace name")
@@ -39,9 +43,9 @@ func showMetrics() error {
 	}
 
 	// Query Prometheus for metrics
-	result, err := queryPrometheusMetric(prometheusURL, Target)
+	result, err := queryPromMetric(prometheusURL, Target)
 	if err != nil {
-		log.Fatalf("Error querying Prometheus: %v", err)
+		return fmt.Errorf("query prometheus metrics: %v", err)
 	}
 
 	// Generate terminal chart from the queried results
@@ -53,15 +57,15 @@ func showMetrics() error {
 
 // getPrometheusAddress fetches Prometheus server address from configuration
 func getPrometheusAddress() (string, error) {
-	file, err := os.ReadFile("config.yml")
+	file, err := os.ReadFile(utils.ConfigFileName)
 	if err != nil {
-		log.Fatalf("Failed to read config.yml: %v", err)
+		return "", fmt.Errorf("failed to read config.yml: %v", err)
 	}
 
 	// Parse the configuration
 	var config model.Config
 	if err = yaml.Unmarshal(file, &config); err != nil {
-		log.Fatalf("Failed to unmarshal YAML: %v", err)
+		return "", fmt.Errorf("failed to unmarshal YAML: %v", err)
 	}
 
 	// Extract Prometheus address based on context
@@ -73,14 +77,13 @@ func getPrometheusAddress() (string, error) {
 		}
 	}
 	if contextPath == "" {
-		log.Fatalf("Failed to find Prometheus context in config.yml")
-		return "", err
+		return "", fmt.Errorf("failed to find Prometheus context in config.yml")
 	}
 	return contextPath, nil
 }
 
-// PrometheusResponse defines the structure of a Prometheus query response
-type PrometheusResponse struct {
+// PromResponse defines the structure of a Prometheus query response
+type PromResponse struct {
 	Status string `json:"status"`
 	Data   struct {
 		ResultType string `json:"resultType"`
@@ -91,14 +94,20 @@ type PrometheusResponse struct {
 	} `json:"data"`
 }
 
-// queryPrometheusMetric sends a query to the Prometheus API and returns the response
-func queryPrometheusMetric(prometheusURL, query string) (*PrometheusResponse, error) {
+// queryPromsMetric sends a query to the Prometheus API and returns the response
+func queryPromMetric(prometheusURL, query string) (*PromResponse, error) {
 	queryURL := fmt.Sprintf("%s/api/v1/query?query=%s", prometheusURL, url.QueryEscape(query))
 	resp, err := http.Get(queryURL)
 	if err != nil {
 		return nil, fmt.Errorf("error querying Prometheus: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			tool.Logger.Errorf("failed to close response body: %v", err)
+			return
+		}
+	}(resp.Body)
 
 	// Read the response body
 	body, err := ioutil.ReadAll(resp.Body)
@@ -107,7 +116,7 @@ func queryPrometheusMetric(prometheusURL, query string) (*PrometheusResponse, er
 	}
 
 	// Parse JSON response into the PrometheusResponse structure
-	var result PrometheusResponse
+	var result PromResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
@@ -115,7 +124,7 @@ func queryPrometheusMetric(prometheusURL, query string) (*PrometheusResponse, er
 }
 
 // generateTerminalLineChart generates and prints an ASCII line chart based on the Prometheus response
-func generateTerminalLineChart(response *PrometheusResponse, metricName string) error {
+func generateTerminalLineChart(response *PromResponse, metricName string) error {
 	var yValues []float64
 
 	// Iterate over the results and extract the values for the specified metric
@@ -142,6 +151,7 @@ func generateTerminalLineChart(response *PrometheusResponse, metricName string) 
 
 	// Generate and display the ASCII line chart
 	graph := asciigraph.Plot(yValues, asciigraph.Width(50), asciigraph.Height(10), asciigraph.Caption(metricName))
-	fmt.Println(graph)
+
+	tool.Logger.Infof(graph)
 	return nil
 }
