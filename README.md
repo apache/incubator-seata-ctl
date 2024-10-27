@@ -15,10 +15,10 @@ Available Commands:
 
 Flags:
   -h, --help              help for seata-ctl
-      --ip string         Seata Server IP (default "127.0.0.1")
-      --password string   Password (default "seata")
-      --port int          Seata Server Admin Port (default 7091)
-      --username string   Username (default "seata")
+      --ip string         Seata Server IP (constants "127.0.0.1")
+      --password string   Password (constants "seata")
+      --port int          Seata Server Admin Port (constants 7091)
+      --username string   Username (constants "seata")
 
 Use "seata-ctl [command] --help" for more information about a command.
 ```
@@ -161,7 +161,7 @@ Usage:
 
 Flags:
       --config-center   If set configuration center conf
-      --data string     Configuration map (default "{}")
+      --data string     Configuration map (constants "{}")
   -h, --help            help for config
       --registry        If set registry conf
 ```

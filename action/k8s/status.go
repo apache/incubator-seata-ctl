@@ -9,8 +9,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const Label = "cr_name"
-
 var StatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "show seata status in k8s",
@@ -24,7 +22,7 @@ var StatusCmd = &cobra.Command{
 
 func init() {
 	StatusCmd.PersistentFlags().StringVar(&Name, "name", "list", "Seataserver name")
-	StatusCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
+	StatusCmd.PersistentFlags().StringVar(&Namespace, "namespace", DefaultNamespace, "Namespace name")
 }
 
 func status() error {

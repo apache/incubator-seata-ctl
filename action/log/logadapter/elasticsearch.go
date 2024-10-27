@@ -6,13 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/olivere/elastic/v7"
+	"github.com/seata/seata-ctl/action/log"
 	"github.com/seata/seata-ctl/tool"
 	"net/http"
 	"strings"
-)
-
-const (
-	ElasticsearchAuth = "elastic"
 )
 
 type Elasticsearch struct{}
@@ -63,7 +60,7 @@ func createElasticClient(currency *Currency) (*elastic.Client, error) {
 		elastic.SetURL(currency.Address),
 		elastic.SetHttpClient(httpClient),
 		elastic.SetSniff(false),
-		elastic.SetBasicAuth(ElasticsearchAuth, currency.Auth),
+		elastic.SetBasicAuth(log.ElasticsearchAuth, currency.Auth),
 	)
 	if err != nil {
 		return nil, err

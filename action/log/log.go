@@ -10,21 +10,6 @@ import (
 	"os"
 )
 
-const (
-	ElasticSearchType    = "ElasticSearch"
-	DefaultNumber        = 10
-	DefaultLogLevel      = ""
-	DefaultLocalLogLevel = "-"
-)
-
-const (
-	LokiType = "Loki"
-)
-
-const (
-	LocalType = "Local"
-)
-
 var LogCmd = &cobra.Command{
 	Use:   "log",
 	Short: "get seata log",
@@ -35,24 +20,6 @@ var LogCmd = &cobra.Command{
 		}
 	},
 }
-
-// ElasticSearch
-var (
-	Level      string
-	Module     string
-	XID        string
-	BranchID   string
-	ResourceID string
-	Message    string
-	Number     int
-)
-
-// Loki
-var (
-	Label string
-	Start string
-	End   string
-)
 
 func init() {
 	LogCmd.PersistentFlags().StringVar(&Level, "level", DefaultLogLevel, "seata log level")
@@ -171,7 +138,7 @@ func buildLocalFilter() map[string]interface{} {
 	if Level != "" {
 		filter["logLevel"] = Level
 	} else {
-		//reset the default value
+		//reset the constants value
 		filter["logLevel"] = DefaultLocalLogLevel
 	}
 	return filter

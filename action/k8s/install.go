@@ -19,16 +19,6 @@ import (
 	_ "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-const (
-	CreateCrdPath = "/apis/apiextensions.k8s.io/v1/customresourcedefinitions"
-	FilePath      = "seata.yaml"
-
-	CRDname    = "seataservers.operator.seata.apache.org"
-	Deployname = "seata-k8s-controller-manager"
-
-	DefaultControllerImage = "apache/seata-controller:latest"
-)
-
 var InstallCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install Kubernetes CRD controller",
@@ -44,20 +34,19 @@ var InstallCmd = &cobra.Command{
 	},
 }
 
-var ControllerImage string
-
 func init() {
-	InstallCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
+	InstallCmd.PersistentFlags().StringVar(&Namespace, "namespace", DefaultNamespace, "Namespace name")
 	InstallCmd.PersistentFlags().StringVar(&ControllerImage, "image", DefaultControllerImage, "Namespace name")
+	InstallCmd.PersistentFlags().StringVar(&DeployName, "name", DefaultDeployName, "Deployment name")
 }
 
 // DeployCRD deploys the custom resource definition.
 func DeployCRD() error {
 	res, err := utils.CreateRequest(CreateCrdPath, FilePath)
-	fmt.Println(res)
 	if err != nil {
 		return err
 	}
+	tool.Logger.Infof(res)
 	return nil
 }
 
@@ -70,7 +59,7 @@ func DeployController() error {
 	}
 
 	// Define the Deployment name and namespace
-	deploymentName := Deployname
+	deploymentName := DeployName
 	namespace := Namespace
 
 	// Check if the Deployment already exists

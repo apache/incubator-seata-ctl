@@ -26,7 +26,7 @@ var UnInstallCmd = &cobra.Command{
 }
 
 func init() {
-	UnInstallCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
+	UnInstallCmd.PersistentFlags().StringVar(&Namespace, "namespace", DefaultNamespace, "Namespace name")
 }
 
 func UninstallCRD() error {
@@ -67,19 +67,19 @@ func UnDeploymentController() error {
 	}
 
 	// Assume client has already been defined
-	err = client.AppsV1().Deployments(Namespace).Delete(context.TODO(), Deployname, metav1.DeleteOptions{})
+	err = client.AppsV1().Deployments(Namespace).Delete(context.TODO(), DeployName, metav1.DeleteOptions{})
 	if err != nil {
 		// Check if the error is a "not found" error
 		if errors.IsNotFound(err) {
 			// The deployment does not exist, output a message instead of returning an error
-			tool.Logger.Infof("Deployment 'seata-k8s-controller-manager' does not exist in namespace '%s', no action taken.\n", Namespace)
+			tool.Logger.Infof("Deployment '%s' does not exist in namespace '%s', no action taken.\n", DeployName, Namespace)
 		} else {
 			// For other errors, log the error and exit the program
 			tool.Logger.Errorf("Error deleting deployment: %s", err.Error())
 		}
 	} else {
 		// Successfully deleted the deployment
-		tool.Logger.Infof("deleted Controller %s successfully ", Deployname)
+		tool.Logger.Infof("deleted Controller %s successfully ", DeployName)
 	}
 	return nil
 }

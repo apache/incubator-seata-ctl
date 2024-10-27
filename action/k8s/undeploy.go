@@ -21,8 +21,8 @@ var UnDeployCmd = &cobra.Command{
 }
 
 func init() {
-	UnDeployCmd.PersistentFlags().StringVar(&Name, "name", "example-seataserver", "Seataserver name")
-	UnDeployCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
+	UnDeployCmd.PersistentFlags().StringVar(&Name, "name", DefaultCRName, "Seataserver name")
+	UnDeployCmd.PersistentFlags().StringVar(&Namespace, "namespace", DefaultNamespace, "Namespace name")
 }
 
 func undeploy() error {

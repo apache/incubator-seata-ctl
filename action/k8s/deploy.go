@@ -11,13 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-const (
-	DefaultServerImage = "apache/seata-server:latest"
-	ServiceName        = "seata-server-cluster"
-	RequestStorage     = "1Gi"
-	LimitStorage       = "1Gi"
-)
-
 var DeployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "deploy seata in k8s",
@@ -29,17 +22,10 @@ var DeployCmd = &cobra.Command{
 	},
 }
 
-var (
-	Name      string
-	Replicas  int32
-	Namespace string
-	Image     string
-)
-
 func init() {
-	DeployCmd.PersistentFlags().StringVar(&Name, "name", "example-seataserver", "Seataserver name")
+	DeployCmd.PersistentFlags().StringVar(&Name, "name", DefaultCRName, "Seataserver name")
 	DeployCmd.PersistentFlags().Int32Var(&Replicas, "replicas", 1, "Replicas number")
-	DeployCmd.PersistentFlags().StringVar(&Namespace, "namespace", "default", "Namespace name")
+	DeployCmd.PersistentFlags().StringVar(&Namespace, "namespace", DefaultNamespace, "Namespace name")
 	DeployCmd.PersistentFlags().StringVar(&Image, "image", DefaultServerImage, "Seata server image")
 }
 

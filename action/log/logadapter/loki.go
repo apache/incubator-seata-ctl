@@ -3,6 +3,7 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/seata/seata-ctl/action/log"
 	"github.com/seata/seata-ctl/tool"
 	"io"
 	"io/ioutil"
@@ -13,24 +14,7 @@ import (
 	"time"
 )
 
-const (
-	LokiAddressPath = "/loki/api/v1/query_range?"
-	TimeLayout      = "2006-01-02-15:04:05"
-)
-
 type Loki struct{}
-
-// LokiQueryResult represents the structure of the response from Loki
-type LokiQueryResult struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
-			Stream map[string]string `json:"stream"`
-			Values [][]string        `json:"values"`
-		} `json:"result"`
-	} `json:"data"`
-}
 
 // QueryLogs queries logs from Loki based on the filter and settings provided
 func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, number int) error {
@@ -56,7 +40,7 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 		}
 		params.Set("end", fmt.Sprintf("%d", res))
 	}
-	queryURL := currency.Address + LokiAddressPath + params.Encode()
+	queryURL := currency.Address + log.LokiAddressPath + params.Encode()
 
 	// Send GET request to Loki
 	resp, err := http.Get(queryURL)
@@ -91,7 +75,6 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 				value := entry[1]
 
 				// Print the readable timestamp and log message
-				fmt.Printf("%s\n", value)
 				if strings.Contains(value, "INFO") {
 					tool.Logger.Info(fmt.Sprintf("%v", value))
 				}
@@ -118,7 +101,7 @@ func parseToTimestamp(timeStr string) (int64, error) {
 	}
 
 	// Parse the time string using the specified layout and timezone
-	t, err := time.ParseInLocation(TimeLayout, timeStr, loc)
+	t, err := time.ParseInLocation(log.TimeLayout, timeStr, loc)
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse time: %v", err)
 	}

@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/seata/seata-ctl/tool"
+	"io"
 	"io/ioutil"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -150,7 +152,12 @@ func sendPostRequest(context *ContextInfo, createCrdPath string, filePath string
 	if err != nil {
 		return "", fmt.Errorf("failed to send request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			tool.Logger.Error("failed to close response body: %v", err)
+		}
+	}(resp.Body)
 
 	// Read response body
 	body, err := ioutil.ReadAll(resp.Body)

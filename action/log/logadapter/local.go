@@ -3,29 +3,13 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/seata/seata-ctl/action/log"
 	"github.com/seata/seata-ctl/tool"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
 )
-
-const (
-	QueryPath = "/query"
-)
-
-// LogData represents a single log entry
-type LogData struct {
-	Timestamp  string `json:"timestamp"`
-	LogLevel   string `json:"log_level"`
-	LogMessage string `json:"log_message"`
-}
-
-// QueryResponse holds the response structure from the /query API
-type QueryResponse struct {
-	ApplicationID string    `json:"application_id"`
-	LogLevel      string    `json:"log_level"`
-	Logs          []LogData `json:"logs"`
-}
 
 // Local is the struct implementing the logging logic
 type Local struct{}
@@ -41,14 +25,19 @@ func (l *Local) QueryLogs(filter map[string]interface{}, currency *Currency, num
 	}
 
 	// Build the query URL using the filter and currency information
-	url := fmt.Sprintf("%s%s?application_id=%s&log_level=%s&limit=%d", currency.Address, QueryPath, currency.Source, logLevel, number)
+	url := fmt.Sprintf("%s%s?application_id=%s&log_level=%s&limit=%d", currency.Address, log.LocalQueryPath, currency.Source, logLevel, number)
 
 	// Send a GET request to the /query endpoint
 	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("failed to make request to %s: %v", url, err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			tool.Logger.Error("failed to close response body: %v", err)
+		}
+	}(resp.Body)
 
 	// Read the response body
 	body, err := ioutil.ReadAll(resp.Body)
