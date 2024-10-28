@@ -2,10 +2,18 @@ package logadapter
 
 import "time"
 
+type Elasticsearch struct{}
+
+type Loki struct{}
+
+type Local struct{}
+
 type Currency struct {
-	Address string `json:"address"`
-	Source  string `json:"source"`
-	Auth    string `json:"auth"`
+	Address  string `json:"address"`
+	Source   string `json:"source"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Index    string `json:"index"`
 }
 
 type SeataLog struct {
