@@ -508,13 +508,13 @@ ERRO[0005] CRD seataservers.operator.seata.apache.org does not exist, no action 
 ERRO[0005] Deployment 'seata-k8s-controller-manager' does not exist in namespace 'default', no action taken. 
 ```
 
-# Deploy
+## Deploy
 
-## Describe
+### Describe
 
 Use this command to deploy the Seata server on the Kubernetes cluster.
 
-## Usage
+### Usage
 
 ```
 seata-ctl
@@ -532,7 +532,7 @@ After the CR is successfully deployed, the controller will automatically deploy 
 - `name`: Name of the CR. If not specified, it defaults to `example-seataserver`.
 - `image`: Specifies the name of the image to use (optional). If not specified, it defaults to `apache/seata-server:latest`.
 
-## Example
+### Example
 
 If the deployment is successful, a message will display: `CR install success, name: example-seataserver`.
 
@@ -560,13 +560,13 @@ ERRO[0065] deploy err:the server could not find the requested resource
 
 If this error occurs, it indicates that the CRD and controller were not successfully deployed. Please check your deployment status.
 
-# UnDeploy
+## UnDeploy
 
-## Describe
+### Describe
 
 Use this command to uninstall the deployed Seata server.
 
-## Usage
+### Usage
 
 ```
 seata-ctl
@@ -580,7 +580,7 @@ After deletion, the controller will automatically remove the Seata server instan
 - `namespace`: Specifies the namespace. If not specified, it defaults to `default`.
 - `name`: Name of the CR. If not specified, it defaults to `example-seataserver`.
 
-## Example
+### Example
 
 If the uninstallation is successful, a message will display: `CR delete success, name: example-seataserver`, indicating that the CR has been successfully uninstalled, and the controller will automatically delete the Seata server from the cluster.
 
@@ -608,13 +608,13 @@ ERRO[0284] undeploy error: the server could not find the requested resource
 
 If this error occurs, it indicates that the CRD and controller were not successfully deployed. Please check your deployment status.
 
-# Scale
+## Scale
 
-## Describe
+### Describe
 
 Use this command to modify the number of replicas for the deployed Seata server.
 
-## Usage
+### Usage
 
 ```
 seata-ctl
@@ -630,7 +630,7 @@ After the operation, the controller will automatically adjust the replica count,
 - `name`: Name of the CR. If not specified, it defaults to `example-seataserver`.
 - `replicas`: Number of deployment replicas. If not specified, it defaults to `1`.
 
-## Example
+### Example
 
 If the modification is successful, a message will display: `CR scale success, name: example-seataserver`, indicating that the CR has been successfully updated, and the controller will automatically adjust the number of Seata server replicas in the cluster.
 
@@ -648,13 +648,13 @@ scale --name=test --replicas=2 --namespace=default
 ERRO[0058] scale err:This seata server does not exits！test 
 ```
 
-# Status
+## Status
 
-## Describe
+### Describe
 
 Use this command to view the status of the deployed Seata server on the cluster.
 
-## Usage
+### Usage
 
 ```
 seata-ctl
@@ -669,7 +669,7 @@ status --name=example-seataserver --namespace=default
 
 `name`: The name of the CR created when deploying the Seata server. If not specified, it defaults to `example-seataserver`.
 
-## Example
+### Example
 
 If everything is functioning correctly, a list of `seata-pods` will be displayed.
 
@@ -689,3 +689,56 @@ status --name=example-seataserver1 --namespace=default
 ERRO[0002] get k8s status error: no matching pods found 
 ```
 
+# Prometheus
+
+Use this command to display data retrieved from Prometheus.
+
+Before using this command, you need to ensure that Prometheus is properly set up and is correctly collecting metrics from Seata.
+
+## Metrics
+
+### Describe
+
+Use this command to show the data retrieved from Prometheus.
+
+### Usage
+
+```
+seata-ctl
+metrics --target=seata_transaction_summary  
+```
+
+#### Arguments
+
+`target`: Specify the metric entry to query. This may vary depending on the system and version, so make sure it aligns with the metrics in Prometheus.
+
+### Example
+
+If everything is functioning correctly, the relevant Prometheus metrics will be displayed in the form of a line chart.
+
+```
+metrics --target=seata_transaction_summary
+
+INFO[0095]  10.00 ┼─────────╮
+  9.01 ┤         │
+  8.02 ┤         ╰╮
+  7.03 ┤          │
+  6.04 ┤          ╰╮
+  5.05 ┤           │
+  4.06 ┤           ╰╮
+  3.07 ┤            ╰╮
+  2.08 ┤             ╰─────────╮
+  1.09 ┤                       ╰───────────╮
+  0.10 ┤                                   ╰─────────────
+                    seata_transaction_summary 
+```
+
+If an error occurs, an error message will be displayed.
+
+```
+metrics --target=seata_transaction_summary
+
+ERRO[0093] Failed to show metrics: no data found for metric: seata_transaction_summary 
+```
+
+This error may indicate that the metric was not found. Please check your Prometheus metrics.
