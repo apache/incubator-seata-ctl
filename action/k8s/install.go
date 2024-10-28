@@ -42,11 +42,10 @@ func init() {
 
 // DeployCRD deploys the custom resource definition.
 func DeployCRD() error {
-	res, err := utils.CreateRequest(CreateCrdPath, FilePath)
+	_, err := utils.CreateRequest(CreateCrdPath, FilePath)
 	if err != nil {
 		return err
 	}
-	tool.Logger.Infof(res)
 	return nil
 }
 

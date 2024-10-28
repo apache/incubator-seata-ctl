@@ -3,7 +3,7 @@ package k8s
 const (
 	DefaultCRName          = "example-seataserver"
 	DefaultServerImage     = "apache/seata-server:latest"
-	DefaultNamespace       = "constants"
+	DefaultNamespace       = "default"
 	DefaultDeployName      = "seata-k8s-controller-manager"
 	DefaultControllerImage = "apache/seata-controller:latest"
 	DefaultReplicas        = 1

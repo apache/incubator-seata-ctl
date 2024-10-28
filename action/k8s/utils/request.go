@@ -3,7 +3,6 @@ package utils
 import "fmt"
 
 func CreateRequest(createCrdPath string, filePath string) (string, error) {
-
 	kubeConfigPath, err := GetKubeConfigPath()
 	if err != nil {
 		return "", fmt.Errorf("failed to get kubeconfig path: %v", err)

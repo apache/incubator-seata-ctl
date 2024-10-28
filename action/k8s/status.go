@@ -49,8 +49,14 @@ func getPodsStatusByLabel(namespace, labelSelector string) ([]string, error) {
 	pods, err := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to list pods: %v", err)
+	}
+
+	// Check if any pods were found
+	if len(pods.Items) == 0 {
+		return nil, fmt.Errorf("no matching pods found") // Alternatively, return a specific error message as needed
 	}
 
 	// Iterate over all Pods and get their status

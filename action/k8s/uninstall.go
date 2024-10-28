@@ -27,6 +27,7 @@ var UnInstallCmd = &cobra.Command{
 
 func init() {
 	UnInstallCmd.PersistentFlags().StringVar(&Namespace, "namespace", DefaultNamespace, "Namespace name")
+	UnInstallCmd.PersistentFlags().StringVar(&DeployName, "name", DefaultDeployName, "Deployment name")
 }
 
 func UninstallCRD() error {
@@ -47,7 +48,7 @@ func UninstallCRD() error {
 		// Check if the error is a "not found" error
 		if errors.IsNotFound(err) {
 			// The resource does not exist, output a message instead of returning an error
-			tool.Logger.Infof("CRD %s does not exist, no action taken.\n", CRDname)
+			tool.Logger.Errorf("CRD %s does not exist, no action taken.\n", CRDname)
 		} else {
 			// For other errors, log the error and exit the program
 			tool.Logger.Errorf("delete CRD failed: %v", err)
@@ -72,7 +73,7 @@ func UnDeploymentController() error {
 		// Check if the error is a "not found" error
 		if errors.IsNotFound(err) {
 			// The deployment does not exist, output a message instead of returning an error
-			tool.Logger.Infof("Deployment '%s' does not exist in namespace '%s', no action taken.\n", DeployName, Namespace)
+			tool.Logger.Errorf("Deployment '%s' does not exist in namespace '%s', no action taken.\n", DeployName, Namespace)
 		} else {
 			// For other errors, log the error and exit the program
 			tool.Logger.Errorf("Error deleting deployment: %s", err.Error())
