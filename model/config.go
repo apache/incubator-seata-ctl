@@ -19,7 +19,7 @@ type Log struct {
 	Clusters []Cluster `yaml:"clusters"`
 }
 
-// Context 依据Context字段选择使用哪个配置
+// Context Select the appropriate configuration based on the Context field
 type Context struct {
 	Kubernetes string `yaml:"kubernetes"`
 	Prometheus string `yaml:"prometheus"`
@@ -39,28 +39,11 @@ type Server struct {
 }
 
 type Cluster struct {
-	Name       string     `yaml:"name"`
-	Types      string     `yaml:"types"`
-	Address    string     `yaml:"address"`
-	Source     string     `yaml:"source"`
-	Auth       string     `yaml:"auth"`
-	Collection Collection `yaml:"collection"`
-	Analysis   Analysis   `yaml:"analysis"`
-	Display    Display    `yaml:"display"`
-}
-
-type Collection struct {
-	Enable bool   `yaml:"enable"`
-	Local  string `yaml:"local"`
-}
-
-type Analysis struct {
-	Enable bool   `yaml:"enable"`
-	Local  string `yaml:"local"`
-}
-
-type Display struct {
-	DisplayType string `yaml:"displayType"`
-	Path        string `yaml:"path"`
-	Local       string `yaml:"local"`
+	Name     string `yaml:"name"`
+	Types    string `yaml:"types"`
+	Address  string `yaml:"address"`
+	Source   string `yaml:"source"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Index    string `yaml:"index"`
 }

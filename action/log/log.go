@@ -29,7 +29,7 @@ func init() {
 	LogCmd.PersistentFlags().StringVar(&ResourceID, "resourceID", "", "seata resourceID")
 	LogCmd.PersistentFlags().StringVar(&Message, "message", "", "seata message")
 	LogCmd.PersistentFlags().IntVar(&Number, "number", DefaultNumber, "seata number")
-	LogCmd.PersistentFlags().StringVar(&Label, "label", "", "seata label")
+	LogCmd.PersistentFlags().StringVar(&Label, "label", "{}", "seata label")
 	LogCmd.PersistentFlags().StringVar(&Start, "start", "", "seata start")
 	LogCmd.PersistentFlags().StringVar(&End, "end", "", "seata end")
 }
@@ -88,9 +88,11 @@ func getContext() (*model.Cluster, *logadapter.Currency, error) {
 	for _, cluster := range config.Log.Clusters {
 		if cluster.Name == contextName {
 			currency := logadapter.Currency{
-				Address: cluster.Address,
-				Source:  cluster.Source,
-				Auth:    cluster.Auth,
+				Address:  cluster.Address,
+				Source:   cluster.Source,
+				Username: cluster.Username,
+				Password: cluster.Password,
+				Index:    cluster.Index,
 			}
 			return &cluster, &currency, nil
 		}
@@ -100,24 +102,7 @@ func getContext() (*model.Cluster, *logadapter.Currency, error) {
 
 func buildElasticSearchFilter() map[string]interface{} {
 	filter := make(map[string]interface{})
-	if Level != "" {
-		filter["logLevel"] = Level
-	}
-	if Module != "" {
-		filter["module"] = Module
-	}
-	if XID != "" {
-		filter["XID"] = XID
-	}
-	if BranchID != "" {
-		filter["BranchID"] = BranchID
-	}
-	if ResourceID != "" {
-		filter["ResourceID"] = ResourceID
-	}
-	if Message != "" {
-		filter["message"] = Message
-	}
+	filter["query"] = Label
 	return filter
 }
 

@@ -17,9 +17,6 @@ import (
 	"strconv"
 )
 
-
-
-DefaultPromTarget
 var MetricsCmd = &cobra.Command{
 	Use:   "metrics",
 	Short: "Show Prometheus metrics",
@@ -29,7 +26,6 @@ var MetricsCmd = &cobra.Command{
 		}
 	},
 }
-
 
 func init() {
 	MetricsCmd.PersistentFlags().StringVar(&Target, "target", DefaultPromTarget, "seata prometheus metrics name")

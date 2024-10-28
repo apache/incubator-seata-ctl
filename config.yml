@@ -16,49 +16,25 @@ log:
     - name: "es"
       types: "ElasticSearch"
       address: "https://localhost:9200"
-      source: "test"
-      auth: "bu4AC50REtt_7rUqddMe"
-      collection:
-        enable: true
-        local: ""
-      analysis:
-        enable: true
-        local: ""
-      display:
-        displayType: ""
-        path: ""
-        local: ""
+      source: "logstash-2024.10.24"
+      username: "elastic"
+      password: "bu4AC50REtt_7rUqddMe"
+      index: "log"
     - name: "loki"
       types: "Loki"
       address: "http://localhost:3100"
       source: ""
-      auth: ""
-      collection:
-        enable: true
-        local: ""
-      analysis:
-        enable: true
-        local: ""
-      display:
-        displayType: ""
-        path: ""
-        local: ""
+      username: ""
+      password: ""
+      index: ""
     - name: "local"
       types: "Local"
       address: "http://localhost:8080"
       source: "seata"
-      auth: ""
-      collection:
-        enable: true
-        local: ""
-      analysis:
-        enable: true
-        local: ""
-      display:
-        displayType: ""
-        path: ""
-        local: ""
+      username: ""
+      password: ""
+      index: ""
 context:
   kubernetes: "cluster1"
   prometheus: "prometheus"
-  log: "loki"
+  log: "es"

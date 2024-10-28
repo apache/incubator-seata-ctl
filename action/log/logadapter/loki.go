@@ -3,7 +3,6 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/seata/seata-ctl/action/log"
 	"github.com/seata/seata-ctl/tool"
 	"io"
 	"io/ioutil"
@@ -13,8 +12,6 @@ import (
 	"strings"
 	"time"
 )
-
-type Loki struct{}
 
 // QueryLogs queries logs from Loki based on the filter and settings provided
 func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, number int) error {
@@ -40,7 +37,7 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 		}
 		params.Set("end", fmt.Sprintf("%d", res))
 	}
-	queryURL := currency.Address + log.LokiAddressPath + params.Encode()
+	queryURL := currency.Address + LokiAddressPath + params.Encode()
 
 	// Send GET request to Loki
 	resp, err := http.Get(queryURL)
@@ -101,7 +98,7 @@ func parseToTimestamp(timeStr string) (int64, error) {
 	}
 
 	// Parse the time string using the specified layout and timezone
-	t, err := time.ParseInLocation(log.TimeLayout, timeStr, loc)
+	t, err := time.ParseInLocation(TimeLayout, timeStr, loc)
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse time: %v", err)
 	}

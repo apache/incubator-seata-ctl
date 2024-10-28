@@ -3,16 +3,12 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/seata/seata-ctl/action/log"
 	"github.com/seata/seata-ctl/tool"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
 )
-
-// Local is the struct implementing the logging logic
-type Local struct{}
 
 // QueryLogs sends a request to the /query endpoint and retrieves logs based on the provided filter.
 // - filter: A map that holds log filtering parameters such as log level.
@@ -25,7 +21,7 @@ func (l *Local) QueryLogs(filter map[string]interface{}, currency *Currency, num
 	}
 
 	// Build the query URL using the filter and currency information
-	url := fmt.Sprintf("%s%s?application_id=%s&log_level=%s&limit=%d", currency.Address, log.LocalQueryPath, currency.Source, logLevel, number)
+	url := fmt.Sprintf("%s%s?application_id=%s&log_level=%s&limit=%d", currency.Address, LocalQueryPath, currency.Source, logLevel, number)
 
 	// Send a GET request to the /query endpoint
 	resp, err := http.Get(url)

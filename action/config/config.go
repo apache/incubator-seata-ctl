@@ -50,20 +50,12 @@ func createSampleConfig() model.Config {
 		Log: model.Log{
 			Clusters: []model.Cluster{
 				{
-					Name: "",
-					Collection: model.Collection{
-						Enable: true,
-						Local:  "",
-					},
-					Analysis: model.Analysis{
-						Enable: true,
-						Local:  "",
-					},
-					Display: model.Display{
-						DisplayType: "",
-						Path:        "",
-						Local:       "",
-					},
+					Name:     "",
+					Types:    "",
+					Address:  "",
+					Source:   "",
+					Username: "",
+					Password: "",
 				},
 			},
 		},
