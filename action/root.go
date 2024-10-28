@@ -19,7 +19,12 @@ package action
 
 import (
 	"github.com/seata/seata-ctl/action/common"
+	"github.com/seata/seata-ctl/action/config"
 	"github.com/seata/seata-ctl/action/get"
+	"github.com/seata/seata-ctl/action/k8s"
+	"github.com/seata/seata-ctl/action/log"
+	"github.com/seata/seata-ctl/action/login"
+	"github.com/seata/seata-ctl/action/prometheus"
 	"github.com/seata/seata-ctl/action/reload"
 	se "github.com/seata/seata-ctl/action/set"
 	del "github.com/seata/seata-ctl/action/try"
@@ -27,9 +32,23 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(quitCmd,
-		get.GetCmd, del.TryCmd,
-		reload.ReloadCmd, se.SetCmd)
+	rootCmd.AddCommand(
+		quitCmd,
+		login.LoginCmd,
+		get.GetCmd,
+		del.TryCmd,
+		reload.ReloadCmd,
+		se.SetCmd,
+		config.ConfigCmd,
+		k8s.DeployCmd,
+		k8s.UnDeployCmd,
+		k8s.InstallCmd,
+		k8s.UnInstallCmd,
+		k8s.StatusCmd,
+		k8s.ScaleCmd,
+		prometheus.MetricsCmd,
+		log.LogCmd,
+	)
 	rootCmd.SetHelpTemplate(common.GetHelpTmplWithOnlyAvailableCmd())
 	rootCmd.CompletionOptions = cobra.CompletionOptions{
 		DisableDefaultCmd:   true,

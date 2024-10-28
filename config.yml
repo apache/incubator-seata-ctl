@@ -1,0 +1,40 @@
+kubernetes:
+  clusters:
+    - name: "cluster1"
+      kubeconfigpath: "/Users/wpy/.kube/config"
+      ymlpath: ""
+    - name: "seata"
+      kubeconfigpath: "/Users/wpy/Documents/Kubernetes/remotekube.txt"
+      ymlpath: ""
+prometheus:
+  servers:
+    - name: "prometheus"
+      address: "http://localhost:9092"
+      auth: ""
+log:
+  clusters:
+    - name: "es"
+      types: "ElasticSearch"
+      address: "https://localhost:9200"
+      source: "logstash-2024.10.24"
+      username: "elastic"
+      password: "bu4AC50REtt_7rUqddMe"
+      index: "log"
+    - name: "loki"
+      types: "Loki"
+      address: "http://localhost:3100"
+      source: ""
+      username: ""
+      password: ""
+      index: ""
+    - name: "local"
+      types: "Local"
+      address: "http://localhost:8080"
+      source: "seata"
+      username: ""
+      password: ""
+      index: ""
+context:
+  kubernetes: "cluster1"
+  prometheus: "prometheus"
+  log: "local"
