@@ -10,20 +10,10 @@ const (
 	DefaultLocalLogLevel = "-"
 )
 
-// ElasticSearch
 var (
-	Level      string
-	Module     string
-	XID        string
-	BranchID   string
-	ResourceID string
-	Message    string
-	Number     int
-)
-
-// Loki
-var (
-	Label string
-	Start string
-	End   string
+	Label  string
+	Number int
+	Start  string
+	End    string
+	Level  string
 )
