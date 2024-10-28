@@ -10,7 +10,6 @@ import (
 	"github.com/olivere/elastic/v7"
 	"github.com/seata/seata-ctl/tool"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -72,25 +71,25 @@ func createElasticClient(currency *Currency) (*elastic.Client, error) {
 	return client, nil
 }
 
-// createElasticClient configures and creates a new Elasticsearch client
+// createEsDefaultClient configures and creates a new Elasticsearch client
 func createEsDefaultClient(currency *Currency) (*elasticsearch.Client, error) {
-	// 配置 Elasticsearch 客户端
+	// Configure the Elasticsearch client
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			currency.Address,
 		},
 		Username: currency.Username,
 		Password: currency.Password,
-		// 如果是自签名证书，跳过证书验证
+		// Skip certificate verification if using a self-signed certificate
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
 
-	// 创建客户端实例
+	// Create the client instance
 	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
-		log.Fatalf("Error creating the client: %s", err)
+		return nil, fmt.Errorf("error creating the client: %s", err)
 	}
 	return es, nil
 }
@@ -220,34 +219,34 @@ func getEsIndexList(currency *Currency) ([]string, error) {
 	// Execute the request
 	res, err := req.Do(context.Background(), es)
 	if err != nil {
-		log.Fatalf("Error getting mapping: %s", err)
+		return nil, fmt.Errorf("error getting mapping: %s", err)
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Println("Failed to close body reader:", err)
+			tool.Logger.Error("error closing body")
 		}
 	}(res.Body)
 
 	// Check if the response is successful
 	if res.IsError() {
-		log.Fatalf("Error response: %s", res.String())
+		return nil, fmt.Errorf("error response: %s", res.String())
 	}
 
 	// Read and parse the response
 	var result map[string]interface{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
+		return nil, fmt.Errorf("failed to make request to %s", err)
 	}
 
 	// Call method to extract field names
 	indexFields := extractFields(result)
-	indexFields = RemoveKeywordSuffix(indexFields)
+	indexFields = removeKeywordSuffix(indexFields)
 	return indexFields, nil
 }
 
-// RemoveKeywordSuffix removes ".keyword" suffix from each string in the slice
-func RemoveKeywordSuffix(input []string) []string {
+// removeKeywordSuffix removes ".keyword" suffix from each string in the slice
+func removeKeywordSuffix(input []string) []string {
 	var result []string
 	for _, str := range input {
 		// Check if the string ends with ".keyword"
@@ -271,8 +270,6 @@ func buildQuery(filter map[string]interface{}, indexFields []string) (*elastic.B
 		for k, v := range indexMap {
 			if Contains(indexFields, k) {
 				query.Should(elastic.NewTermQuery(k, v))
-			} else {
-				return query, fmt.Errorf("invalid index: %s", k)
 			}
 		}
 	}

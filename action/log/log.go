@@ -23,11 +23,6 @@ var LogCmd = &cobra.Command{
 
 func init() {
 	LogCmd.PersistentFlags().StringVar(&Level, "level", DefaultLogLevel, "seata log level")
-	LogCmd.PersistentFlags().StringVar(&Module, "module", "", "seata module")
-	LogCmd.PersistentFlags().StringVar(&XID, "xid", "", "seata expression")
-	LogCmd.PersistentFlags().StringVar(&BranchID, "banchID", "", "seata branchId")
-	LogCmd.PersistentFlags().StringVar(&ResourceID, "resourceID", "", "seata resourceID")
-	LogCmd.PersistentFlags().StringVar(&Message, "message", "", "seata message")
 	LogCmd.PersistentFlags().IntVar(&Number, "number", DefaultNumber, "seata number")
 	LogCmd.PersistentFlags().StringVar(&Label, "label", "{}", "seata label")
 	LogCmd.PersistentFlags().StringVar(&Start, "start", "", "seata start")
