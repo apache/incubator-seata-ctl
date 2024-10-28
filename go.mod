@@ -1,8 +1,6 @@
 module github.com/seata/seata-ctl
 
-go 1.22.0
-
-toolchain go1.23.1
+go 1.23.1
 
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.15.0
