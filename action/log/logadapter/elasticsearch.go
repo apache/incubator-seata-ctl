@@ -270,6 +270,8 @@ func buildQuery(filter map[string]interface{}, indexFields []string) (*elastic.B
 		for k, v := range indexMap {
 			if Contains(indexFields, k) {
 				query.Should(elastic.NewTermQuery(k, v))
+			} else {
+				return query, fmt.Errorf("invalid index key: %s", k)
 			}
 		}
 	}

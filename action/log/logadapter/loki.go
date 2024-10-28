@@ -66,11 +66,13 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 
 	// Process and print logs
 	if result.Status == "success" {
+		if len(result.Data.Result) == 0 {
+			return fmt.Errorf("loki query returned no results")
+		}
 		for _, stream := range result.Data.Result {
 			for _, entry := range stream.Values {
 				// Extract timestamp and log message
 				value := entry[1]
-
 				// Print the readable timestamp and log message
 				if strings.Contains(value, "INFO") {
 					tool.Logger.Info(fmt.Sprintf("%v", value))

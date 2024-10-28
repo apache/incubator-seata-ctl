@@ -710,7 +710,7 @@ metrics --target=seata_transaction_summary
 
 #### Arguments
 
-`target`: Specify the metric entry to query. This may vary depending on the system and version, so make sure it aligns with the metrics in Prometheus.
+- `target`: Specify the metric entry to query. This may vary depending on the system and version, so make sure it aligns with the metrics in Prometheus.
 
 ### Example
 
@@ -742,3 +742,220 @@ ERRO[0093] Failed to show metrics: no data found for metric: seata_transaction_s
 ```
 
 This error may indicate that the metric was not found. Please check your Prometheus metrics.
+
+# Log
+
+Use this command to view logs on Kubernetes, currently supporting ElasticSearch, Loki, and a custom-developed logging platform. Configuration files and query parameters vary between platforms.
+
+## Log
+
+### Describe
+
+Use this command to retrieve Seata logs from different logging platforms.
+
+Before using this command, please ensure that your logging system is fully deployed and functioning properly.
+
+### Usage
+
+#### ElasticSearch
+
+```
+seata-ctl
+
+log --label={stream=stderr}  --number=3
+```
+
+Before using ES, you need to make the following configurations in the global configuration file. The meanings of the related parameters are as follows,An example of the configuration is as follows:
+
+```
+    - name: "es"  //name
+      types: "ElasticSearch"  //es type
+      address: "https://localhost:9200"   //es address
+      source: "logstash-2024.10.24"    //es index name
+      username: "elastic"   // es auth username
+      password: "bu4AC50REtt_7rUqddMe"  //es auth password
+      index: "log"	//doc type
+```
+
+> Note: Currently, only login with a username and password is supported for ES. If your ES has TLS encryption enabled, it is not supported at this time.
+
+Note: Currently, only login with a username and password is supported for ES. If your ES has TLS encryption enabled, it is not supported at this time.
+
+n the chart, the `index` field represents the output field for the final log display, which may vary across different index structures in ES.The source contains our index structure and the returned document content, but most of the fields are unnecessary for us. We use the index entry to select among these, and only the matching logs will be outputted.
+
+For example, if the returned structure of our query is this:
+
+```
+{
+  "took": 2,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 38,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "logstash-2024.10.24",
+        "_id": "KyvwyJIB5EKHPP6lI9Os",
+        "_score": 1.0,
+        "_ignored": ["log.keyword"],
+        "_source": {
+          "@timestamp": "2024-10-24T17:39:45.771Z",
+          "log": "2024-10-24T17:39:45Z\tINFO\tCreating a new SeataServer Service {default:seata-server-cluster}\t{\"controller\": \"seataserver\", \"controllerGroup\": \"operator.seata.apache.org\", \"controllerKind\": \"SeataServer\", \"SeataServer\": {\"name\":\"example-seataserver\",\"namespace\":\"default\"}, \"namespace\": \"default\", \"name\": \"example-seataserver\", \"reconcileID\": \"5912d1c4-6afd-4d66-8f11-eea6c54a1e4c\"}\n",
+          "stream": "stderr",
+          "time": "2024-10-24T17:39:45.771071Z",
+          "kubernetes": {
+            "pod_name": "seata-k8s-controller-manager-6448b86796-6l46n",
+            "namespace_name": "default",
+            "pod_id": "966edd0e-bc15-4276-9e6a-e255e84859ce",
+            "labels": {
+              "app": "seata-k8s-controller-manager",
+              "pod-template-hash": "6448b86796"
+            },
+            "host": "minikube",
+            "container_name": "seata-k8s-controller-manager",
+            "docker_id": "b87df4627de30b0aab402aef4621fa46f45b3a1976dd6f466ab4a42bb8265455",
+            "container_hash": "bearslyricattack/seata-controller@sha256:84ddedd9fa63c4a3ab8aa3a5017065014826dc3a9cac8c8fff328fbf9c600f11",
+            "container_image": "bearslyricattack/seata-controller:latest"
+          }
+        }
+      }
+    ]
+  }
+}
+
+```
+
+We only need the logs related to the `log` field, so you can set `index` to `log`.
+
+##### Arguments
+
+- `label`: Specify the query entries in the format `{key1=value1, key2=value2, ...}`, where `key` is the name of the index in ES and `value` is the index's value. Neither the key nor the value requires quotation marks in the query.The default value is `{}`.
+- `number`: The number of log entries returned, with a default value of 10.
+
+> Note: To accommodate different ES index structures, a preliminary index structure check will be conducted during log queries. If the index does not contain this structure, the query will not proceed and an error will be returned.
+
+#### Loki
+
+```
+seata-ctl
+
+log --label={job="seata-transaction"} --start=2025-10-18-14:21:21 --end=2025-10-18-22:16:14 --number=3
+```
+
+Before using Loki, you also need to configure it in the configuration file.
+
+```
+    - name: "loki"  //loki name
+      types: "Loki"	//type name
+      address: "http://localhost:3100"  //loki address
+      source: ""
+      username: ""
+      password: ""
+```
+
+##### Arguments
+
+- **query**: The label for the query, following the native format, e.g., `{job="seata-transaction"}`, depending on the overall log format created.
+- **start**: Start time in UTC timezone, formatted as `2024-10-18-12:32:54`.
+- **end**: End time in UTC timezone, formatted as `2024-10-18-12:32:54`.
+- **number**: The number of log entries returned.
+
+#### Local
+
+```
+seata-ctl
+
+log --level=INFO --number=5
+```
+
+Similarly, to meet more diverse needs, we have developed a custom logging system for Seata applications on Kubernetes. This system will continue to evolve along with the Seata-K8s project.
+
+At first,configure it in the configuration file.
+
+```
+    - name: "local" //name
+      types: "Local"  //type
+      address: "http://localhost:8080"  //address
+      source: "seata" //application
+      username: ""
+      password: ""
+      index: ""
+```
+
+### Example
+
+#### ElasticSearch
+
+If everything is functioning correctly, the specified log entries will be returned.
+
+```
+log --label={stream=stderr}  --number=3
+
+INFO[0015] 2024-10-24T17:39:45Z INFO    Creating a new SeataServer Service {default:seata-server-cluster}       {"controller": "seataserver", "controllerGroup": "operator.seata.apache.org", "controllerKind": "SeataServer", "SeataServer": {"name":"example-seataserver","namespace":"default"}, "namespace": "default", "name": "example-seataserver", "reconcileID": "5912d1c4-6afd-4d66-8f11-eea6c54a1e4c"} 
+INFO[0015] 2024-10-24T17:39:45Z INFO    Creating a new SeataServer StatefulSet {default:example-seataserver}    {"controller": "seataserver", "controllerGroup": "operator.seata.apache.org", "controllerKind": "SeataServer", "SeataServer": {"name":"example-seataserver","namespace":"default"}, "namespace": "default", "name": "example-seataserver", "reconcileID": "5912d1c4-6afd-4d66-8f11-eea6c54a1e4c"} 
+INFO[0015] 2024-10-24T17:39:45Z INFO    SeataServer(default/example-seataserver) has not been synchronized yet, requeue in 10 seconds   {"controller": "seataserver", "controllerGroup": "operator.seata.apache.org", "controllerKind": "SeataServer", "SeataServer": {"name":"example-seataserver","namespace":"default"}, "namespace": "default", "name": "example-seataserver", "reconcileID": "5912d1c4-6afd-4d66-8f11-eea6c54a1e4c"} 
+```
+
+If the index does not exist, an error message will be displayed.
+
+```
+log --label={stream1111=stderr}  --number=3
+
+ERRO[0001] get log error: invalid index key: stream1111 
+```
+
+If no documents are found, an error indicating "no results found" will be returned.
+
+```
+log --label={stream=stderr11}  --number=3
+
+ERRO[0060] get log error: no documents found     
+```
+
+If any other errors occur, an error message will be displayed.
+
+#### Loki
+
+If everything is functioning correctly, the specified log entries will be returned.
+
+```
+log --label={job="seata-transaction"} --start=2024-10-18-14:21:21 --end=2024-10-18-22:16:14 --number=2
+
+INFO[0098] 2023-10-17 14:15:23.363 INFO  [TransactionManager] --- Transaction [XID: 172.16.20.1:8091:123456789] ends with SUCCESS. 
+INFO[0098] 2023-10-17 14:15:23.360 INFO  [RMHandler] --- Transaction resource committed successfully: ResourceId: jdbc:mysql://localhost:3306/seata_test, XID: 172.16.20.1:8091:123456789 
+```
+
+If no documents are found, an error indicating "no results found" will be returned.
+
+```
+log --label={job="seata-transaction"} --start=2025-10-18-14:21:21 --end=2025-10-18-22:16:14 --number=3
+
+ERRO[0058] get log error: loki query returned no results 
+```
+
+If any other errors occur, an error message will be displayed.
+
+#### Local
+
+If everything is functioning correctly, the specified log entries will be returned.
+
+```
+log --level=INFO --number=5
+
+Peer example-seataserver-2.seata-server-cluster:9091 is connected
+Peer example-seataserver-1.seata-server-cluster:9091 is connected
+Node <default/example-seataserver-0.seata-server-cluster:9091> term 4 start preVote.
+Peer example-seataserver-2.seata-server-cluster:9091 is connected
+Peer example-seataserver-1.seata-server-cluster:9091 is connected
+```
+
+If any other errors occur, an error message will be displayed.
