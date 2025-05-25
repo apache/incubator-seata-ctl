@@ -24,26 +24,45 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches:
-      - 'main'
+    branches: [ "main" ]
 
 jobs:
-
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            ext: ""
+          - os: macos-latest
+            goos: darwin
+            ext: ""
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+          check-latest: true
 
-    - name: Build
-      run: go build .
+      - name: Configure Build
+        shell: bash
+        run: |
+          echo "GOOS=${{ matrix.goos }}" >> $GITHUB_ENV
+          echo "GOARCH=amd64" >> $GITHUB_ENV
+          echo "OUTPUT=seata-ctl-${{ matrix.goos }}-amd64${{ matrix.ext }}" >> $GITHUB_ENV
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: seata-ctl-linux-amd64
-        path: ./seata-ctl
+      - name: Build
+        run: go build -v -o ${{ env.OUTPUT }} .
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.OUTPUT }}
+          path: ${{ env.OUTPUT }}
