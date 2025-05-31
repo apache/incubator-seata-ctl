@@ -11,10 +11,10 @@ linters:
     - vet
     - unused
     - misspell
-  disable:
-    - errcheck
 
 run:
   deadline: 4m
   skip-dirs:
-    - misc
+    - ".*/go/pkg/mod/golang\\.org/toolchain@.*"
+    - ".*/go/pkg/mod/golang\\.org/x/.*"
+    - "/usr/local/go/.*"
