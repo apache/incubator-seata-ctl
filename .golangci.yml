@@ -1,6 +1,10 @@
 # https://golangci-lint.run/usage/configuration#config-file
 
 linters:
+  disabled:
+    - typecheck
+    - gocyclo
+
   enable:
     - staticcheck
     - unconvert
@@ -11,8 +15,7 @@ linters:
     - vet
     - unused
     - misspell
-  disable:
-    - typecheck
+
 run:
   deadline: 4m
   skip-dirs:
