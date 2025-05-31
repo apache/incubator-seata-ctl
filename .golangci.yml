@@ -15,6 +15,4 @@ linters:
 run:
   deadline: 4m
   skip-dirs:
-    - ".*/go/pkg/mod/golang\\.org/toolchain@.*"
-    - ".*/go/pkg/mod/golang\\.org/x/.*"
-    - "/usr/local/go/.*"
+    - ".*/go/pkg/mod/.*"
