@@ -156,7 +156,7 @@ func sendPostRequest(context *ContextInfo, createCrdPath string, filePath string
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			tool.Logger.Error("failed to close response body: %v", err)
+			tool.Logger.Errorf("failed to close response body: %v", err)
 		}
 	}(resp.Body)
 

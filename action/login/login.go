@@ -34,10 +34,22 @@ func init() {
 	LoginCmd.PersistentFlags().IntVar(&credential.ServerPort, "port", 7091, "Seata Server Admin Port")
 	LoginCmd.PersistentFlags().StringVar(&credential.Username, "username", "seata", "Username")
 	LoginCmd.PersistentFlags().StringVar(&credential.Password, "password", "seata", "Password")
-	viper.BindPFlag("ip", LoginCmd.PersistentFlags().Lookup("ip"))
-	viper.BindPFlag("port", LoginCmd.PersistentFlags().Lookup("port"))
-	viper.BindPFlag("username", LoginCmd.PersistentFlags().Lookup("username"))
-	viper.BindPFlag("password", LoginCmd.PersistentFlags().Lookup("password"))
+	err := viper.BindPFlag("ip", LoginCmd.PersistentFlags().Lookup("ip"))
+	if err != nil {
+		return
+	}
+	err = viper.BindPFlag("port", LoginCmd.PersistentFlags().Lookup("port"))
+	if err != nil {
+		return
+	}
+	err = viper.BindPFlag("username", LoginCmd.PersistentFlags().Lookup("username"))
+	if err != nil {
+		return
+	}
+	err = viper.BindPFlag("password", LoginCmd.PersistentFlags().Lookup("password"))
+	if err != nil {
+		return
+	}
 }
 
 func printPrompt(address string) {
