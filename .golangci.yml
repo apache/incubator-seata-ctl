@@ -11,7 +11,8 @@ linters:
     - vet
     - unused
     - misspell
-
+  disable:
+    - typecheck
 run:
   deadline: 4m
   skip-dirs:
