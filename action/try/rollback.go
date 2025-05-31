@@ -36,7 +36,7 @@ func init() {
 var RollbackCmd = &cobra.Command{
 	Use:   "rollback",
 	Short: "rollback a txn",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		seata.RollbackTxn(rollbackXID)
 		rollbackXID = ""
 	},

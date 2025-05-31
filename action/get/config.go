@@ -34,7 +34,7 @@ func init() {
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Get the configuration",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		params, err := common.ParseArrayArg(confKeys)
 		if err != nil {
 			common.Log("", err)

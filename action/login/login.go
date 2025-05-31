@@ -2,10 +2,11 @@ package login
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/seata/seata-ctl/seata"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var Address string
@@ -14,17 +15,16 @@ var Address string
 var LoginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to Seata server",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Println("Attempting to login...")
 		Address = seata.GetAuth().GetAddress()
 		err := seata.GetAuth().Login()
 		if err != nil {
 			fmt.Println("Login failed!")
 			os.Exit(1)
-		} else {
-			fmt.Printf("Login successful to address: %s\n", Address)
-			printPrompt(Address)
 		}
+		fmt.Printf("Login successful to address: %s\n", Address)
+		printPrompt(Address)
 	},
 }
 

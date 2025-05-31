@@ -31,7 +31,7 @@ func init() {
 var ReloadCmd = &cobra.Command{
 	Use:   "reload",
 	Short: "Reload the configuration",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		seata.ReloadConfiguration()
 	},
 }

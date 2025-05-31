@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
@@ -12,7 +13,7 @@ import (
 var UnDeployCmd = &cobra.Command{
 	Use:   "undeploy",
 	Short: "undeploy seata in k8s",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := undeploy()
 		if err != nil {
 			tool.Logger.Errorf("undeploy error: %v", err)

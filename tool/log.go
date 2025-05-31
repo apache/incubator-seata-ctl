@@ -1,8 +1,9 @@
 package tool
 
 import (
-	"github.com/sirupsen/logrus"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Logger Global logger instance

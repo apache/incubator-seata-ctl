@@ -19,9 +19,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/seata/seata-ctl/action/login"
 	"github.com/seata/seata-ctl/tool"
-	"os"
 
 	"github.com/seata/seata-ctl/action"
 	"github.com/seata/seata-ctl/action/common"
@@ -32,7 +33,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "seata-ctl",
 		Short: "seata-ctl is a CLI tool for Seata",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			// Do Stuff Here
 		},
 	}
@@ -42,7 +43,7 @@ func init() {
 	rootCmd.SetHelpCommand(&cobra.Command{
 		Use:   "seata-ctl",
 		Short: "seata-ctl is a CLI tool for Seata",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			//
 		},
 	})

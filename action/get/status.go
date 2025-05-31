@@ -26,7 +26,7 @@ var StatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Get the status",
 	Long:  `Get the status`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		seata.GetStatus()
 	},
 }

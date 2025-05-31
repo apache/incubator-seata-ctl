@@ -38,7 +38,7 @@ func init() {
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Set the configuration",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		data, err := common.ParseDictArg(kvData)
 		if err != nil {
 			common.Log("", err)

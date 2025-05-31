@@ -59,7 +59,7 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		// Do Stuff Here
 	},
 }

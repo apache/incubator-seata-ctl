@@ -36,7 +36,7 @@ func init() {
 var CommitCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "commit a txn",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		seata.CommitTxn(commitXID)
 		commitXID = ""
 	},

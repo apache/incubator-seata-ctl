@@ -33,7 +33,7 @@ func init() {
 var GetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get the resource",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		cmd.Help()
 	},
 }
