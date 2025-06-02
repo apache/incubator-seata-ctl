@@ -14,7 +14,7 @@ import (
 	"github.com/seata/seata-ctl/model"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 var MetricsCmd = &cobra.Command{
