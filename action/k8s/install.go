@@ -3,26 +3,20 @@ package k8s
 import (
 	"context"
 	"fmt"
+
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
-	_ "gopkg.in/yaml.v3"
-	_ "io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	_ "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	_ "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	_ "k8s.io/apimachinery/pkg/runtime/schema"
-	_ "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
 var InstallCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install Kubernetes CRD controller",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := DeployCRD()
 		if err != nil {
 			tool.Logger.Errorf("install CRD err: %v", err)
@@ -65,7 +59,7 @@ func DeployController() error {
 	_, err = client.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
 	if err == nil {
 		// If the Deployment exists, output a message and return
-		return fmt.Errorf("Deployment '%s' already exists in the '%s' namespace\n", deploymentName, Namespace)
+		return fmt.Errorf("deployment '%s' already exists in the '%s' namespace", deploymentName, Namespace)
 	} else if !errors.IsNotFound(err) {
 		// If there is an error other than "not found", return it
 		return fmt.Errorf("error checking for existing deployment: %v", err)

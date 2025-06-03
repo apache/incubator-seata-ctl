@@ -2,12 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/seata/seata-ctl/model"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"os"
 )
 
 const ConfigFileName = "config.yml"

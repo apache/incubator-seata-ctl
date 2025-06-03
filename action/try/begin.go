@@ -36,7 +36,7 @@ func init() {
 var BeginCmd = &cobra.Command{
 	Use:   "begin",
 	Short: "begin a txn",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		seata.BeginTxn(timeout)
 		timeout = 3000
 	},

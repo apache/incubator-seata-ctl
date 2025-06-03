@@ -3,11 +3,11 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/seata/seata-ctl/tool"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/seata/seata-ctl/tool"
 )
 
 // QueryLogs sends a request to the /query endpoint and retrieves logs based on the provided filter.
@@ -31,12 +31,12 @@ func (l *Local) QueryLogs(filter map[string]interface{}, currency *Currency, num
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			tool.Logger.Error("failed to close response body: %v", err)
+			tool.Logger.Errorf("failed to close response body: %v", err)
 		}
 	}(resp.Body)
 
 	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}

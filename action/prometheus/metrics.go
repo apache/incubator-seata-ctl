@@ -3,24 +3,24 @@ package prometheus
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strconv"
+
 	"github.com/guptarohit/asciigraph"
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/model"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"os"
-	"strconv"
+	yaml "gopkg.in/yaml.v3"
 )
 
 var MetricsCmd = &cobra.Command{
 	Use:   "metrics",
 	Short: "Show Prometheus metrics",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		if err := showMetrics(); err != nil {
 			tool.Logger.Errorf("Failed to show metrics: %v", err)
 		}
@@ -106,7 +106,7 @@ func queryPromMetric(prometheusURL, query string) (*PromResponse, error) {
 	}(resp.Body)
 
 	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
@@ -131,9 +131,9 @@ func generateTerminalLineChart(response *PromResponse, metricName string) error 
 				value, err := strconv.ParseFloat(valueStr, 64)
 				if err != nil {
 					return fmt.Errorf("error converting value to float: %v", err)
-				} else {
-					yValues = append(yValues, value)
 				}
+				yValues = append(yValues, value)
+
 			} else {
 				return fmt.Errorf("error converting value to float: %v", result.Value[1])
 			}

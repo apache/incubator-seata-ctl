@@ -33,6 +33,6 @@ func init() {
 var TryCmd = &cobra.Command{
 	Use:   "try",
 	Short: "Try example transactions",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 	},
 }
