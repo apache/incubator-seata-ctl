@@ -20,6 +20,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
@@ -31,7 +32,7 @@ import (
 var DeployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "deploy seata in k8s",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := deploy()
 		if err != nil {
 			tool.Logger.Errorf("deploy err:%v", err)
@@ -60,6 +61,9 @@ func deploy() error {
 
 	var seataServer *unstructured.Unstructured
 	seataServer, err = client.Resource(gvr).Namespace(namespace).Get(context.TODO(), Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
 	if seataServer != nil {
 		return fmt.Errorf("seata server already exist! name:" + Name)
 	}

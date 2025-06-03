@@ -31,6 +31,6 @@ func init() {
 var SetCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Set the resource",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 	},
 }

@@ -19,6 +19,7 @@ package k8s
 
 import (
 	"context"
+
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
@@ -30,7 +31,7 @@ import (
 var UnInstallCmd = &cobra.Command{
 	Use:   "uninstall",
 	Short: "uninstall seata in k8s",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := UninstallCRD()
 		if err != nil {
 			tool.Logger.Errorf("uninstall CRD err:%v", err)

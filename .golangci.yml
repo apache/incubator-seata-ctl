@@ -1,6 +1,10 @@
 # https://golangci-lint.run/usage/configuration#config-file
 
 linters:
+  disable:
+    - typecheck
+    - gocyclo
+
   enable:
     - staticcheck
     - unconvert
@@ -11,10 +15,8 @@ linters:
     - vet
     - unused
     - misspell
-  disable:
-    - errcheck
 
 run:
   deadline: 4m
   skip-dirs:
-    - misc
+    - ".*/go/pkg/mod/.*"

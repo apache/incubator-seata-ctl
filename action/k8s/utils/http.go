@@ -22,19 +22,20 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/seata/seata-ctl/tool"
 	"io"
-	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+
+	"github.com/seata/seata-ctl/tool"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
-	"net/http"
-	"strings"
 )
 
 type ContextType string
 
 const (
-	Json ContextType = "application/json"
+	JSON ContextType = "application/json"
 )
 
 // ContextInfo is a structure to hold client certificate, key, CA certificate, API server URL, and content type.
@@ -49,7 +50,7 @@ type ContextInfo struct {
 // LoadKubeConfig loads the kubeconfig from the provided path and filename
 func LoadKubeConfig(kubeconfigFullPath string) (*api.Config, error) {
 	// Read the kubeconfig file
-	kubeconfigBytes, err := ioutil.ReadFile(kubeconfigFullPath)
+	kubeconfigBytes, err := os.ReadFile(kubeconfigFullPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read kubeconfig file: %v", err)
 	}
@@ -90,7 +91,7 @@ func GetContextInfo(config *api.Config) (*ContextInfo, error) {
 	caCert := cluster.CertificateAuthority
 	apiServer := cluster.Server
 	// Content type for API request
-	contentType := Json
+	contentType := JSON
 	// Check if all required fields are present
 	if clientCert == "" || clientKey == "" || caCert == "" || apiServer == "" {
 		missingFields := []string{}
@@ -133,7 +134,7 @@ func sendPostRequest(context *ContextInfo, createCrdPath string, filePath string
 	}
 
 	// Read CA certificate
-	caCert, err := ioutil.ReadFile(caCertFile)
+	caCert, err := os.ReadFile(caCertFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read CA certificate: %v", err)
 	}
@@ -150,7 +151,7 @@ func sendPostRequest(context *ContextInfo, createCrdPath string, filePath string
 	client := &http.Client{Transport: transport}
 
 	// Read data from file
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read data file: %v", err)
 	}
@@ -172,12 +173,12 @@ func sendPostRequest(context *ContextInfo, createCrdPath string, filePath string
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			tool.Logger.Error("failed to close response body: %v", err)
+			tool.Logger.Errorf("failed to close response body: %v", err)
 		}
 	}(resp.Body)
 
 	// Read response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read response: %v", err)
 	}
@@ -189,7 +190,6 @@ func sendPostRequest(context *ContextInfo, createCrdPath string, filePath string
 	}
 	if resp.StatusCode == http.StatusConflict {
 		return "", fmt.Errorf("seata crd already exists")
-	} else {
-		return "error: " + string(body), err
 	}
+	return "error: " + string(body), err
 }

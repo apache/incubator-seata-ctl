@@ -19,11 +19,12 @@ package config
 
 import (
 	"fmt"
-	"github.com/seata/seata-ctl/model"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+
+	"github.com/seata/seata-ctl/model"
+	"github.com/spf13/cobra"
+	yaml "gopkg.in/yaml.v3"
 )
 
 var Path string
@@ -31,7 +32,7 @@ var Path string
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Set config path",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := createYMLFile(Path)
 		if err != nil {
 			println("Error creating config:", err.Error())

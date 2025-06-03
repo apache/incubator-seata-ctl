@@ -20,14 +20,14 @@ package logadapter
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/seata/seata-ctl/tool"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/seata/seata-ctl/tool"
 )
 
 // QueryLogs queries logs from Loki based on the filter and settings provided
@@ -69,7 +69,7 @@ func (l *Loki) QueryLogs(filter map[string]interface{}, currency *Currency, numb
 	}(resp.Body)
 
 	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("error reading response from Loki: %v", err)
 	}

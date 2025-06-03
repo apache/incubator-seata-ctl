@@ -19,18 +19,19 @@ package log
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/seata/seata-ctl/action/log/logadapter"
 	"github.com/seata/seata-ctl/model"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
-	"os"
+	yaml "gopkg.in/yaml.v3"
 )
 
 var LogCmd = &cobra.Command{
 	Use:   "log",
 	Short: "get seata log",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := getLog()
 		if err != nil {
 			tool.Logger.Errorf("get log error: %s", err)

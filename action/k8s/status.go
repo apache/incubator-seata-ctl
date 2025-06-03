@@ -20,6 +20,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
@@ -29,7 +30,7 @@ import (
 var StatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "show seata status in k8s",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := status()
 		if err != nil {
 			tool.Logger.Errorf("get k8s status error: %v", err)
@@ -81,7 +82,7 @@ func getPodsStatusByLabel(namespace, labelSelector string) ([]string, error) {
 
 	// Build formatted status string for output
 	statuses = append(statuses, fmt.Sprintf("%-25s %-10s", "POD NAME", "STATUS")) // Header
-	statuses = append(statuses, fmt.Sprintf("%s", "-------------------------------------------"))
+	statuses = append(statuses, "-------------------------------------------")
 
 	for _, pod := range pods.Items {
 		statuses = append(statuses, fmt.Sprintf("%-25s %-10s", pod.Name, pod.Status.Phase))

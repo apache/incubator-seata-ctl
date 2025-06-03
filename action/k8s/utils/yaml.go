@@ -19,9 +19,9 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+
 	"sigs.k8s.io/yaml"
 )
 
@@ -44,7 +44,7 @@ func ConvertAndSaveYamlToJSON(targetName string) (string, error) {
 	}
 
 	// Read the YAML file
-	yamlData, err := ioutil.ReadFile(targetName)
+	yamlData, err := os.ReadFile(targetName)
 	if err != nil {
 		return "", fmt.Errorf("failed to read YAML file: %v", err)
 	}
@@ -56,7 +56,7 @@ func ConvertAndSaveYamlToJSON(targetName string) (string, error) {
 	}
 
 	// Write the converted JSON data to the new file
-	err = ioutil.WriteFile(newFilePath, jsonData, 0644)
+	err = os.WriteFile(newFilePath, jsonData, 0644)
 	if err != nil {
 		return "", fmt.Errorf("failed to write JSON file: %v", err)
 	}

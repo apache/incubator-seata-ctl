@@ -32,7 +32,7 @@ func init() {
 var quitCmd = &cobra.Command{
 	Use:   "quit",
 	Short: "Quit the session",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		println("Quit the session")
 		os.Exit(0)
 	},

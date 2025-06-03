@@ -31,7 +31,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of seata-ctl",
 	Long:  `All software has versions. This is seata-ctl's`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Println("v0.0")
 	},
 }

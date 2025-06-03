@@ -20,6 +20,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+
 	"github.com/seata/seata-ctl/action/k8s/utils"
 	"github.com/seata/seata-ctl/tool"
 	"github.com/spf13/cobra"
@@ -31,7 +32,7 @@ import (
 var ScaleCmd = &cobra.Command{
 	Use:   "scale",
 	Short: "scale seata in k8s",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		err := scale()
 		if err != nil {
 			tool.Logger.Errorf("scale err:%v", err)
@@ -60,6 +61,9 @@ func scale() error {
 
 	var seataServer *unstructured.Unstructured
 	seataServer, err = client.Resource(gvr).Namespace(namespace).Get(context.TODO(), Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
 	if seataServer == nil {
 		return fmt.Errorf("This seata server does not exits！" + Name)
 	}

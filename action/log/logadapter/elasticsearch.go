@@ -22,13 +22,14 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/olivere/elastic/v7"
-	"github.com/seata/seata-ctl/tool"
 	"io"
 	"net/http"
 	"strings"
+
+	elasticsearch "github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+	elastic "github.com/olivere/elastic/v7"
+	"github.com/seata/seata-ctl/tool"
 )
 
 // QueryLogs is a function that queries specific documents
@@ -267,10 +268,7 @@ func removeKeywordSuffix(input []string) []string {
 	var result []string
 	for _, str := range input {
 		// Check if the string ends with ".keyword"
-		if strings.HasSuffix(str, ".keyword") {
-			// Remove the ".keyword" suffix
-			str = strings.TrimSuffix(str, ".keyword")
-		}
+		str = strings.TrimSuffix(str, ".keyword")
 		result = append(result, str) // Add the processed string to the result slice
 	}
 	return result
