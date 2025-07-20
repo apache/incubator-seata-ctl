@@ -6,7 +6,6 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.15.0
 	github.com/guptarohit/asciigraph v0.7.3
 	github.com/jedib0t/go-pretty/v6 v6.4.7
-	github.com/olivere/elastic/v7 v7.0.32
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.16.0
@@ -48,7 +47,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect

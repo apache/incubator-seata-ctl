@@ -28,13 +28,15 @@ import (
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	elastic "github.com/olivere/elastic/v7"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/seata/seata-ctl/tool"
 )
 
 // QueryLogs is a function that queries specific documents
 func (e *Elasticsearch) QueryLogs(filter map[string]interface{}, currency *Currency, number int) error {
-	client, err := createElasticClient(currency)
+	client, err := createEsDefaultClient(currency)
 	if err != nil {
 		return fmt.Errorf("failed to create elasticsearch client: %w", err)
 	}
@@ -50,47 +52,21 @@ func (e *Elasticsearch) QueryLogs(filter map[string]interface{}, currency *Curre
 		return err
 	}
 
-	// Execute the search query
-	searchResult, err := client.Search().
-		Index(indexName).
-		Size(number).
-		Query(query).
-		Do(context.Background())
+	res, err := client.Search().Index(indexName).Size(number).Query(query).Do(context.Background())
+
 	if err != nil {
 		return fmt.Errorf("error fetching documents: %w", err)
 	}
 
-	err = processSearchHits(searchResult, currency)
+	err = processSearchHits(res, currency)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// createElasticClient configures and creates a new Elasticsearch client
-func createElasticClient(currency *Currency) (*elastic.Client, error) {
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
-
-	client, err := elastic.NewClient(
-		elastic.SetURL(currency.Address),
-		elastic.SetHttpClient(httpClient),
-		elastic.SetSniff(false),
-		elastic.SetBasicAuth(currency.Username, currency.Password),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
-}
-
 // createEsDefaultClient configures and creates a new Elasticsearch client
-func createEsDefaultClient(currency *Currency) (*elasticsearch.Client, error) {
+func createEsDefaultClient(currency *Currency) (*elasticsearch.TypedClient, error) {
 	// Configure the Elasticsearch client
 	cfg := elasticsearch.Config{
 		Addresses: []string{
@@ -105,7 +81,7 @@ func createEsDefaultClient(currency *Currency) (*elasticsearch.Client, error) {
 	}
 
 	// Create the client instance
-	es, err := elasticsearch.NewClient(cfg)
+	es, err := elasticsearch.NewTypedClient(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("error creating the client: %s", err)
 	}
@@ -113,14 +89,14 @@ func createEsDefaultClient(currency *Currency) (*elasticsearch.Client, error) {
 }
 
 // processSearchHits handles and formats the search results
-func processSearchHits(searchResult *elastic.SearchResult, currency *Currency) error {
-	if len(searchResult.Hits.Hits) == 0 {
+func processSearchHits(res *search.Response, currency *Currency) error {
+	if len(res.Hits.Hits) == 0 {
 		return fmt.Errorf("no documents found")
 	}
 
-	for _, hit := range searchResult.Hits.Hits {
+	for _, hit := range res.Hits.Hits {
 		var doc map[string]interface{}
-		if err := json.Unmarshal(hit.Source, &doc); err != nil {
+		if err := json.Unmarshal(hit.Source_, &doc); err != nil {
 			return fmt.Errorf("failed to unmarshal document: %w", err)
 		}
 
@@ -274,20 +250,24 @@ func removeKeywordSuffix(input []string) []string {
 	return result
 }
 
-// buildQuery constructs a BoolQuery based on the provided filter and index fields
-func buildQuery(filter map[string]interface{}, indexFields []string) (*elastic.BoolQuery, error) {
-	query := elastic.NewBoolQuery()
+// buildQuery constructs a types Query based on the provided filter and index fields
+func buildQuery(filter map[string]interface{}, indexFields []string) (*types.Query, error) {
+	query := &types.Query{}
 	if filter["query"].(string) != "{}" {
 		indexMap, err := ParseJobString(filter["query"].(string))
 		if err != nil {
 			return query, err
 		}
+		var termQuery []types.Query
 		for k, v := range indexMap {
 			if Contains(indexFields, k) {
-				query.Should(elastic.NewTermQuery(k, v))
+				termQuery = append(termQuery, types.Query{Term: map[string]types.TermQuery{k: {Value: v}}})
 			} else {
 				return query, fmt.Errorf("invalid index key: %s", k)
 			}
+		}
+		query.Bool = &types.BoolQuery{
+			Should: termQuery,
 		}
 	}
 	return query, nil
