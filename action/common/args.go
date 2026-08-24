@@ -27,21 +27,28 @@ import (
 )
 
 func ReadArgs(in io.Reader) error {
+	return ReadArgsFromScanner(bufio.NewScanner(in))
+}
+
+func ReadArgsFromScanner(scanner *bufio.Scanner) error {
 	os.Args = []string{""}
 
-	scanner := bufio.NewScanner(in)
-
 	var lines []string
-
 	for scanner.Scan() {
-		line := strings.Trim(scanner.Text(), "\r\n ")
-		if line[len(line)-1] == '\\' {
-			line = line[:len(line)-1]
-			lines = append(lines, line)
+		current := strings.Trim(scanner.Text(), "\r\n ")
+		if strings.HasSuffix(current, "\\") {
+			current = strings.TrimSuffix(current, "\\")
+			lines = append(lines, current)
 		} else {
-			lines = append(lines, line)
+			lines = append(lines, current)
 			break
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+	if len(lines) == 0 {
+		return io.EOF
 	}
 
 	argsStr := strings.Join(lines, " ")

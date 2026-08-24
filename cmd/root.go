@@ -18,7 +18,10 @@
 package cmd
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/seata/seata-ctl/action/login"
@@ -64,20 +67,22 @@ func Execute() {
 
 	tool.InitLogger()
 
-	var address = ""
-
 	for _, arg := range os.Args {
 		if arg == "-h" || arg == "--help" || arg == "version" {
 			os.Exit(0)
 		}
 	}
 	var err error
+	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		if login.Address != "" {
-			printPrompt(address)
+			printPrompt(login.Address)
 		}
-		err = common.ReadArgs(os.Stdin)
+		err = common.ReadArgsFromScanner(scanner)
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return
+			}
 			fmt.Println(err)
 			continue
 		}

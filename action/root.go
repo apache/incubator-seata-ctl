@@ -20,14 +20,18 @@ package action
 import (
 	"github.com/seata/seata-ctl/action/common"
 	"github.com/seata/seata-ctl/action/config"
+	"github.com/seata/seata-ctl/action/diagnose"
 	"github.com/seata/seata-ctl/action/get"
 	"github.com/seata/seata-ctl/action/k8s"
+	"github.com/seata/seata-ctl/action/lock"
 	"github.com/seata/seata-ctl/action/log"
 	"github.com/seata/seata-ctl/action/login"
 	"github.com/seata/seata-ctl/action/prometheus"
 	"github.com/seata/seata-ctl/action/reload"
 	se "github.com/seata/seata-ctl/action/set"
+	"github.com/seata/seata-ctl/action/transaction"
 	del "github.com/seata/seata-ctl/action/try"
+	"github.com/seata/seata-ctl/action/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -48,6 +52,10 @@ func init() {
 		k8s.ScaleCmd,
 		prometheus.MetricsCmd,
 		log.LogCmd,
+		diagnose.DiagnoseCmd,
+		tui.TuiCmd,
+		lock.LockCmd,
+		transaction.TransactionCmd,
 	)
 	rootCmd.SetHelpTemplate(common.GetHelpTmplWithOnlyAvailableCmd())
 	rootCmd.CompletionOptions = cobra.CompletionOptions{

@@ -14,6 +14,32 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-### 0.0.1
 
-- Add read-only diagnostics: `diagnose run`, `transaction list/show`, `lock list/check`, and a terminal TUI, all backed by table, JSON, and YAML output.
+# TUI
+
+Open the diagnostic terminal interface:
+
+```bash
+seata-ctl
+login --ip 127.0.0.1 --port 7091 --username seata --password seata
+tui
+```
+
+Pages:
+
+- `1` or `Tab`: diagnostics
+- `2`: global transactions
+- `3`: global locks
+
+Keys:
+
+- `r`: refresh now
+- `a`: toggle auto refresh
+- `q` or `Ctrl+C`: quit
+
+Flags:
+
+- `--refresh 5s`
+- `--page-size 20`
+- `--check-db`
+- `--db-address host:port`

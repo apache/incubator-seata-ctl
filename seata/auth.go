@@ -25,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var auth Auth
@@ -60,18 +61,45 @@ func GetAuth() *Auth {
 }
 
 func (auth *Auth) Login() error {
+	auth.token = ""
 	url := HTTPProtocol + auth.GetAddress() + LoginURL
-	jsonStr := []byte(fmt.Sprintf(`{"username":"%s","password":"%s"}`, auth.Username, auth.Password))
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonStr))
+	jsonStr, err := json.Marshal(map[string]string{
+		"username": auth.Username,
+		"password": auth.Password,
+	})
+	if err != nil {
+		return err
+	}
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		return err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	resp, err := defaultHTTPClient.Do(request)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf("login failed: http status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
 	var jsonResp Response
 	err = json.Unmarshal(body, &jsonResp)
 	if err != nil {
 		return err
+	}
+	if jsonResp.Code != CodeOK {
+		if jsonResp.Message == "" {
+			return errors.New("login failed")
+		}
+		return errors.New(jsonResp.Message)
+	}
+	if jsonResp.Data == "" {
+		return errors.New("login failed: empty token")
 	}
 	auth.token = jsonResp.Data
 	return nil

@@ -18,62 +18,72 @@
 package seata
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 type NodeStatusResponse struct {
 	BaseResponse
-	Data []NodeStatus `json:"data"`
+	Data []NodeStatus `json:"data" yaml:"data"`
 }
 
 type NodeStatus struct {
-	Address string `json:"address"`
-	Status  string `json:"status"`
-	Type    string `json:"type"`
+	Address string `json:"address" yaml:"address"`
+	Status  string `json:"status" yaml:"status"`
+	Type    string `json:"type" yaml:"type"`
+}
+
+func QueryStatus() (*NodeStatusResponse, error) {
+	return queryStatus(NewConsoleClient())
+}
+
+func queryStatus(client *ConsoleClient) (*NodeStatusResponse, error) {
+	var response NodeStatusResponse
+	if err := client.Get(HealthCheckURL, nil, &response); err != nil {
+		return nil, err
+	}
+	if err := checkConsoleCode(response.Code, response.Message, "query status failed"); err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 func GetStatus() {
-	url := HTTPProtocol + GetAuth().GetAddress() + HealthCheckURL
-	token, err := GetAuth().GetToken()
+	response, err := QueryStatus()
 	if err != nil {
-		fmt.Println("Please login again!")
-		os.Exit(0)
-	}
-	request, _ := http.NewRequest("GET", url, nil)
-	request.Header.Set("authorization", token)
-	resp, err := (&http.Client{}).Do(request)
-	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
+	result, err := FormatNodeStatusResponse(response, OutputTable)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
+	fmt.Fprintln(os.Stdout, result)
+}
 
-	var response NodeStatusResponse
-	err = json.Unmarshal(body, &response)
+func FormatNodeStatusResponse(response *NodeStatusResponse, output string) (string, error) {
+	output, err := NormalizeOutput(output)
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
-
-	if response.Code != "200" {
-		fmt.Println(response.Message)
+	switch output {
+	case OutputTable:
+		return FormatNodeStatusTable(response.Data), nil
+	default:
+		return FormatStructuredOutput(response, output)
 	}
+}
 
+func FormatNodeStatusTable(statuses []NodeStatus) string {
 	t := table.NewWriter()
-	header := table.Row{"type", "address", "status"}
-	t.AppendHeader(header)
-	for _, data := range response.Data {
-		row := table.Row{data.Type, data.Address, data.Status}
-		t.AppendRow(row)
+	t.Style().Format.Header = text.FormatDefault
+	t.AppendHeader(table.Row{"type", "address", "status"})
+	for _, status := range statuses {
+		t.AppendRow(table.Row{status.Type, status.Address, status.Status})
 	}
-	fmt.Println(t.Render())
-	t.Style()
+	return t.Render()
 }

@@ -18,8 +18,11 @@
 package common
 
 import (
+	"bufio"
 	"bytes"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -134,11 +137,26 @@ func TestReadArgs(t *testing.T) {
 			continue
 		}
 		assert.Nil(t, ReadArgs(&stdin))
-		assert.Equal(t, len(os.Args), len(testCase.args))
-		for i := 0; i < len(os.Args); i++ {
-			assert.Equal(t, os.Args[i], testCase.args[i])
-		}
+		assert.Equal(t, testCase.args, os.Args[1:])
 	}
+}
+
+func TestReadArgsPreservesFollowingCommands(t *testing.T) {
+	scanner := bufio.NewScanner(strings.NewReader("transaction --help\nquit\n"))
+
+	assert.NoError(t, ReadArgsFromScanner(scanner))
+	assert.Equal(t, []string{"transaction", "--help"}, os.Args[1:])
+
+	assert.NoError(t, ReadArgsFromScanner(scanner))
+	assert.Equal(t, []string{"quit"}, os.Args[1:])
+}
+
+func TestReadArgsHandlesEmptyLineAndEOF(t *testing.T) {
+	stdin := strings.NewReader("\n")
+
+	assert.NoError(t, ReadArgs(stdin))
+	assert.Equal(t, []string{}, os.Args[1:])
+	assert.ErrorIs(t, ReadArgs(stdin), io.EOF)
 }
 
 func TestParseDictArg(t *testing.T) {

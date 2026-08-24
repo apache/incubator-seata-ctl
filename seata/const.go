@@ -33,6 +33,11 @@ const (
 	TryBeginTxnURL               = TryTxnURL + "/begin"
 	TryCommitTxnURL              = TryTxnURL + "/commit"
 	TryRollBackTxnURL            = TryTxnURL + "/rollback"
+	GlobalSessionURL             = AdminURL + "/globalSession"
+	GlobalSessionQueryURL        = GlobalSessionURL + "/query"
+	GlobalLockURL                = AdminURL + "/globalLock"
+	GlobalLockQueryURL           = GlobalLockURL + "/query"
+	GlobalLockCheckURL           = GlobalLockURL + "/check"
 )
 
 const (

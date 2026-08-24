@@ -41,7 +41,7 @@ func BeginTxn(timeout int) {
 	}
 	request, _ := http.NewRequest("POST", url, nil)
 	request.Header.Set("authorization", token)
-	resp, err := (&http.Client{}).Do(request)
+	resp, err := defaultHTTPClient.Do(request)
 	if err != nil {
 		return
 	}
@@ -74,7 +74,7 @@ func CommitTxn(xid string) {
 	}
 	request, _ := http.NewRequest("POST", url, nil)
 	request.Header.Set("authorization", token)
-	resp, err := (&http.Client{}).Do(request)
+	resp, err := defaultHTTPClient.Do(request)
 	if err != nil {
 		return
 	}
@@ -107,7 +107,7 @@ func RollbackTxn(xid string) {
 	}
 	request, _ := http.NewRequest("POST", url, nil)
 	request.Header.Set("authorization", token)
-	resp, err := (&http.Client{}).Do(request)
+	resp, err := defaultHTTPClient.Do(request)
 	if err != nil {
 		return
 	}
